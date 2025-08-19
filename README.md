@@ -77,3 +77,7 @@ Once configured, you can ask Claude natural language questions about your NetBox
 - "Search for devices at the Skipton site"
 - "Show me all Cisco devices"
 - "Find devices with 'router' in the name"
+
+## Available Tools
+
+See [TOOLS.md](TOOLS.md) for a comprehensive reference of all available MCP tools and their parameters.

@@ -98,6 +98,19 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "get_device_interfaces",
+            "description": "Get interfaces for a specific device",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "device_id": {"type": "integer", "description": "NetBox device ID"},
+                    "device_name": {"type": "string", "description": "Device name (alternative to ID)"},
+                    "interface_type": {"type": "string", "description": "Filter by interface type"},
+                    "enabled": {"type": "boolean", "description": "Filter by enabled status"}
+                }
+            }
+        },
+        {
             "name": "get_sites",
             "description": "List all sites in NetBox",
             "inputSchema": {
@@ -110,6 +123,19 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "get_site_details",
+            "description": "Get comprehensive site information including devices and racks",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "site_id": {"type": "integer", "description": "NetBox site ID"},
+                    "site_name": {"type": "string", "description": "Site name (alternative to ID)"},
+                    "include_devices": {"type": "boolean", "description": "Include device summary (default: true)", "default": True},
+                    "include_racks": {"type": "boolean", "description": "Include rack summary (default: true)", "default": True}
+                }
+            }
+        },
+        {
             "name": "search_ip_addresses",
             "description": "Search for IP addresses in NetBox",
             "inputSchema": {
@@ -118,6 +144,79 @@ def get_mcp_tools():
                     "address": {"type": "string", "description": "IP address or network"},
                     "vrf": {"type": "string", "description": "VRF name"},
                     "status": {"type": "string", "description": "IP status"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_prefixes",
+            "description": "Search and list IP prefixes/subnets",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "prefix": {"type": "string", "description": "Specific prefix (e.g., '192.168.1.0/24')"},
+                    "within": {"type": "string", "description": "Find prefixes within a larger network"},
+                    "family": {"type": "integer", "description": "IP family (4 or 6)"},
+                    "status": {"type": "string", "description": "Prefix status"},
+                    "site": {"type": "string", "description": "Filter by site"},
+                    "vrf": {"type": "string", "description": "Filter by VRF"},
+                    "role": {"type": "string", "description": "Prefix role"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_available_ips",
+            "description": "Find available IP addresses within a prefix",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "prefix_id": {"type": "integer", "description": "NetBox prefix ID"},
+                    "prefix": {"type": "string", "description": "Prefix in CIDR notation (alternative to ID)"},
+                    "count": {"type": "integer", "description": "Number of IPs to return (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_vlans",
+            "description": "Search for VLANs",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "vid": {"type": "integer", "description": "VLAN ID"},
+                    "name": {"type": "string", "description": "VLAN name (partial match)"},
+                    "site": {"type": "string", "description": "Filter by site"},
+                    "group": {"type": "string", "description": "VLAN group"},
+                    "status": {"type": "string", "description": "VLAN status"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_circuits",
+            "description": "Search for circuits",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "cid": {"type": "string", "description": "Circuit ID (partial match)"},
+                    "provider": {"type": "string", "description": "Provider name"},
+                    "type": {"type": "string", "description": "Circuit type"},
+                    "status": {"type": "string", "description": "Circuit status"},
+                    "site": {"type": "string", "description": "Termination site"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_racks",
+            "description": "Search for equipment racks",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Rack name (partial match)"},
+                    "site": {"type": "string", "description": "Site name"},
+                    "location": {"type": "string", "description": "Location within site"},
+                    "status": {"type": "string", "description": "Rack status"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -330,8 +429,15 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
     tools = {
         "search_devices": search_devices,
         "get_device_details": get_device_details,
+        "get_device_interfaces": get_device_interfaces,
         "get_sites": get_sites,
-        "search_ip_addresses": search_ip_addresses
+        "get_site_details": get_site_details,
+        "search_ip_addresses": search_ip_addresses,
+        "get_prefixes": get_prefixes,
+        "get_available_ips": get_available_ips,
+        "search_vlans": search_vlans,
+        "search_circuits": search_circuits,
+        "search_racks": search_racks
     }
     
     if tool_name not in tools:
@@ -373,6 +479,340 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         output += f"  - Type: {device_type}\n"
         output += f"  - Role: {role}\n"
         output += f"  - Status: {status}\n\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_device_interfaces(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get interfaces for a device"""
+    device_id = args.get("device_id")
+    device_name = args.get("device_name")
+    
+    if not device_id and not device_name:
+        return [{"type": "text", "text": "Either device_id or device_name must be provided"}]
+    
+    if device_name and not device_id:
+        search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+        devices = search_result.get("results", [])
+        if not devices:
+            return [{"type": "text", "text": f"Device '{device_name}' not found"}]
+        device_id = devices[0]["id"]
+    
+    params = {"device_id": device_id}
+    if "interface_type" in args:
+        params["type"] = args["interface_type"]
+    if "enabled" in args:
+        params["enabled"] = args["enabled"]
+    
+    result = await netbox_client.get("dcim/interfaces/", params)
+    interfaces = result.get("results", [])
+    
+    if not interfaces:
+        return [{"type": "text", "text": "No interfaces found for this device."}]
+    
+    output = f"Interfaces for device ID {device_id}:\n\n"
+    for interface in interfaces:
+        enabled = interface.get("enabled", False)
+        iface_type = interface.get("type", {}).get("label", "Unknown")
+        
+        output += f"• **{interface['name']}**\n"
+        output += f"  - Type: {iface_type}\n"
+        output += f"  - Enabled: {'Yes' if enabled else 'No'}\n"
+        
+        if interface.get("description"):
+            output += f"  - Description: {interface['description']}\n"
+        
+        if interface.get("mtu"):
+            output += f"  - MTU: {interface['mtu']}\n"
+        
+        # Show connected cable if any
+        if interface.get("cable"):
+            cable_id = interface["cable"]["id"]
+            output += f"  - Cable: {cable_id}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get comprehensive site information"""
+    site_id = args.get("site_id")
+    site_name = args.get("site_name")
+    include_devices = args.get("include_devices", True)
+    include_racks = args.get("include_racks", True)
+    
+    if not site_id and not site_name:
+        return [{"type": "text", "text": "Either site_id or site_name must be provided"}]
+    
+    if site_name and not site_id:
+        search_result = await netbox_client.get("dcim/sites/", {"name": site_name})
+        sites = search_result.get("results", [])
+        if not sites:
+            return [{"type": "text", "text": f"Site '{site_name}' not found"}]
+        site_id = sites[0]["id"]
+    
+    # Get site details
+    site = await netbox_client.get(f"dcim/sites/{site_id}/")
+    
+    region_name = site.get("region", {}).get("name", "No region") if site.get("region") else "No region"
+    status = site.get("status", {}).get("label", "Unknown")
+    
+    output = f"# Site Details: {site['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {site['id']}\n"
+    output += f"- Name: {site['name']}\n"
+    output += f"- Slug: {site['slug']}\n"
+    output += f"- Status: {status}\n"
+    output += f"- Region: {region_name}\n"
+    
+    if site.get("description"):
+        output += f"- Description: {site['description']}\n"
+    
+    output += "\n"
+    
+    # Include device summary if requested
+    if include_devices:
+        device_result = await netbox_client.get("dcim/devices/", {"site_id": site_id, "limit": 100})
+        devices = device_result.get("results", [])
+        device_count = device_result.get("count", 0)
+        
+        output += f"**Devices ({device_count} total):**\n"
+        if devices:
+            # Group by role for summary
+            roles = {}
+            for device in devices:
+                role = device.get("role", {}).get("name", "Unknown")
+                if role not in roles:
+                    roles[role] = 0
+                roles[role] += 1
+            
+            for role, count in roles.items():
+                output += f"- {role}: {count} devices\n"
+        else:
+            output += "- No devices found\n"
+        output += "\n"
+    
+    # Include rack summary if requested
+    if include_racks:
+        rack_result = await netbox_client.get("dcim/racks/", {"site_id": site_id, "limit": 100})
+        racks = rack_result.get("results", [])
+        rack_count = rack_result.get("count", 0)
+        
+        output += f"**Racks ({rack_count} total):**\n"
+        if racks:
+            for rack in racks[:10]:  # Show first 10 racks
+                status = rack.get("status", {}).get("label", "Unknown")
+                u_height = rack.get("u_height", "Unknown")
+                output += f"- {rack['name']}: {u_height}U, Status: {status}\n"
+            
+            if rack_count > 10:
+                output += f"- ... and {rack_count - 10} more racks\n"
+        else:
+            output += "- No racks found\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_prefixes(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search and list IP prefixes/subnets"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "prefix" in args:
+        params["prefix"] = args["prefix"]
+    if "within" in args:
+        params["within"] = args["within"]
+    if "family" in args:
+        params["family"] = args["family"]
+    if "status" in args:
+        params["status"] = args["status"]
+    if "site" in args:
+        params["site"] = args["site"]
+    if "vrf" in args:
+        params["vrf"] = args["vrf"]
+    if "role" in args:
+        params["role"] = args["role"]
+    
+    result = await netbox_client.get("ipam/prefixes/", params)
+    prefixes = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not prefixes:
+        return [{"type": "text", "text": "No prefixes found matching the criteria."}]
+    
+    output = f"Found {count} prefixes:\n\n"
+    for prefix in prefixes:
+        vrf_name = prefix.get("vrf", {}).get("name", "Global") if prefix.get("vrf") else "Global"
+        status = prefix.get("status", {}).get("label", "Unknown")
+        role = prefix.get("role", {}).get("name", "No role") if prefix.get("role") else "No role"
+        site = prefix.get("site", {}).get("name", "No site") if prefix.get("site") else "No site"
+        
+        output += f"• **{prefix['prefix']}**\n"
+        output += f"  - VRF: {vrf_name}\n"
+        output += f"  - Status: {status}\n"
+        output += f"  - Role: {role}\n"
+        output += f"  - Site: {site}\n"
+        
+        if prefix.get("description"):
+            output += f"  - Description: {prefix['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_available_ips(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Find available IP addresses within a prefix"""
+    prefix_id = args.get("prefix_id")
+    prefix = args.get("prefix")
+    count = args.get("count", 10)
+    
+    if not prefix_id and not prefix:
+        return [{"type": "text", "text": "Either prefix_id or prefix must be provided"}]
+    
+    if prefix and not prefix_id:
+        search_result = await netbox_client.get("ipam/prefixes/", {"prefix": prefix})
+        prefixes = search_result.get("results", [])
+        if not prefixes:
+            return [{"type": "text", "text": f"Prefix '{prefix}' not found"}]
+        prefix_id = prefixes[0]["id"]
+    
+    # NetBox API endpoint for available IPs
+    result = await netbox_client.get(f"ipam/prefixes/{prefix_id}/available-ips/", {"limit": count})
+    
+    if not result:
+        return [{"type": "text", "text": "No available IP addresses found in this prefix."}]
+    
+    output = f"Available IP addresses (showing up to {count}):\n\n"
+    for ip in result:
+        output += f"• {ip['address']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_vlans(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for VLANs"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "vid" in args:
+        params["vid"] = args["vid"]
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "site" in args:
+        params["site"] = args["site"]
+    if "group" in args:
+        params["group"] = args["group"]
+    if "status" in args:
+        params["status"] = args["status"]
+    
+    result = await netbox_client.get("ipam/vlans/", params)
+    vlans = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not vlans:
+        return [{"type": "text", "text": "No VLANs found matching the criteria."}]
+    
+    output = f"Found {count} VLANs:\n\n"
+    for vlan in vlans:
+        status = vlan.get("status", {}).get("label", "Unknown")
+        site = vlan.get("site", {}).get("name", "No site") if vlan.get("site") else "No site"
+        group = vlan.get("group", {}).get("name", "No group") if vlan.get("group") else "No group"
+        
+        output += f"• **VLAN {vlan['vid']}** - {vlan['name']}\n"
+        output += f"  - Status: {status}\n"
+        output += f"  - Site: {site}\n"
+        output += f"  - Group: {group}\n"
+        
+        if vlan.get("description"):
+            output += f"  - Description: {vlan['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_circuits(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for circuits"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "cid" in args:
+        params["cid__icontains"] = args["cid"]
+    if "provider" in args:
+        params["provider"] = args["provider"]
+    if "type" in args:
+        params["type"] = args["type"]
+    if "status" in args:
+        params["status"] = args["status"]
+    if "site" in args:
+        params["site"] = args["site"]
+    
+    result = await netbox_client.get("circuits/circuits/", params)
+    circuits = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not circuits:
+        return [{"type": "text", "text": "No circuits found matching the criteria."}]
+    
+    output = f"Found {count} circuits:\n\n"
+    for circuit in circuits:
+        provider = circuit.get("provider", {}).get("name", "Unknown")
+        circuit_type = circuit.get("type", {}).get("name", "Unknown")
+        status = circuit.get("status", {}).get("label", "Unknown")
+        
+        output += f"• **{circuit['cid']}** (ID: {circuit['id']})\n"
+        output += f"  - Provider: {provider}\n"
+        output += f"  - Type: {circuit_type}\n"
+        output += f"  - Status: {status}\n"
+        
+        if circuit.get("description"):
+            output += f"  - Description: {circuit['description']}\n"
+        
+        # Show terminations if available
+        if circuit.get("termination_a"):
+            term_a = circuit["termination_a"]
+            if term_a.get("site"):
+                output += f"  - Termination A: {term_a['site']['name']}\n"
+        
+        if circuit.get("termination_z"):
+            term_z = circuit["termination_z"]
+            if term_z.get("site"):
+                output += f"  - Termination Z: {term_z['site']['name']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_racks(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for equipment racks"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "site" in args:
+        params["site"] = args["site"]
+    if "location" in args:
+        params["location"] = args["location"]
+    if "status" in args:
+        params["status"] = args["status"]
+    
+    result = await netbox_client.get("dcim/racks/", params)
+    racks = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not racks:
+        return [{"type": "text", "text": "No racks found matching the criteria."}]
+    
+    output = f"Found {count} racks:\n\n"
+    for rack in racks:
+        site = rack.get("site", {}).get("name", "Unknown")
+        status = rack.get("status", {}).get("label", "Unknown")
+        u_height = rack.get("u_height", "Unknown")
+        location = rack.get("location", {}).get("name", "No location") if rack.get("location") else "No location"
+        
+        output += f"• **{rack['name']}** (ID: {rack['id']})\n"
+        output += f"  - Site: {site}\n"
+        output += f"  - Location: {location}\n"
+        output += f"  - Height: {u_height}U\n"
+        output += f"  - Status: {status}\n"
+        
+        if rack.get("description"):
+            output += f"  - Description: {rack['description']}\n"
+        
+        output += "\n"
     
     return [{"type": "text", "text": output}]
 
