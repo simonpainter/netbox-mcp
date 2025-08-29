@@ -694,6 +694,31 @@ def get_mcp_tools():
                     "slug": {"type": "string", "description": "Site group slug (alternative to ID)"}
                 }
             }
+        },
+        {
+            "name": "search_regions",
+            "description": "Search for regions in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Region name (partial match)"},
+                    "slug": {"type": "string", "description": "Region slug"},
+                    "parent": {"type": "string", "description": "Parent region name"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_region_details",
+            "description": "Get detailed information about a specific region",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "region_id": {"type": "integer", "description": "NetBox region ID"},
+                    "name": {"type": "string", "description": "Region name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Region slug (alternative to ID)"}
+                }
+            }
         }
     ]
 
@@ -1143,7 +1168,9 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_vlan_groups": search_vlan_groups,
         "get_vlan_group_details": get_vlan_group_details,
         "search_site_groups": search_site_groups,
-        "get_site_group_details": get_site_group_details
+        "get_site_group_details": get_site_group_details,
+        "search_regions": search_regions,
+        "get_region_details": get_region_details
     }
     
     if tool_name not in tools:
@@ -2920,6 +2947,91 @@ async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
     except Exception as e:
         logger.warning(f"Failed to retrieve site count for group {group['id']}: {e}")
         # If sites endpoint doesn't support group filter, skip the count
+    
+    return [{"type": "text", "text": output}]
+
+async def search_regions(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for regions"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "parent" in args:
+        params["parent"] = args["parent"]
+    
+    result = await netbox_client.get("dcim/regions/", params)
+    regions = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not regions:
+        return [{"type": "text", "text": "No regions found matching the criteria."}]
+    
+    output = f"Found {count} regions:\n\n"
+    for region in regions:
+        parent_name = region.get("parent", {}).get("name", "No parent") if region.get("parent") else "No parent"
+        
+        output += f"• **{region['name']}** ({region['slug']})\n"
+        output += f"  - ID: {region['id']}\n"
+        output += f"  - Parent: {parent_name}\n"
+        
+        if region.get("description"):
+            output += f"  - Description: {region['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_region_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific region"""
+    region_id = args.get("region_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not region_id and not name and not slug:
+        return [{"type": "text", "text": "Either region_id, name, or slug must be provided"}]
+    
+    if not region_id:
+        if name:
+            search_result = await netbox_client.get("dcim/regions/", {"name": name})
+        else:
+            search_result = await netbox_client.get("dcim/regions/", {"slug": slug})
+        
+        regions = search_result.get("results", [])
+        if not regions:
+            identifier = name or slug
+            return [{"type": "text", "text": f"Region '{identifier}' not found"}]
+        region_id = regions[0]["id"]
+    
+    region = await netbox_client.get(f"dcim/regions/{region_id}/")
+    parent_name = region.get("parent", {}).get("name", "No parent") if region.get("parent") else "No parent"
+    
+    output = f"# Region Details: {region['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {region['id']}\n"
+    output += f"- Name: {region['name']}\n"
+    output += f"- Slug: {region['slug']}\n"
+    output += f"- Parent: {parent_name}\n"
+    
+    if region.get("description"):
+        output += f"- Description: {region['description']}\n"
+    
+    # Get site count for this region
+    try:
+        sites_result = await netbox_client.get("dcim/sites/", {"region": region['id'], "limit": 1})
+        site_count = sites_result.get("count", 0)
+        output += f"- Sites in this region: {site_count}\n"
+    except Exception as e:
+        logger.warning(f"Failed to retrieve site count for region {region['id']}: {e}")
+    
+    # Get child regions count
+    try:
+        children_result = await netbox_client.get("dcim/regions/", {"parent": region['id'], "limit": 1})
+        children_count = children_result.get("count", 0)
+        output += f"- Child regions: {children_count}\n"
+    except Exception as e:
+        logger.warning(f"Failed to retrieve child regions count for region {region['id']}: {e}")
     
     return [{"type": "text", "text": output}]
 
