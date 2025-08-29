@@ -241,6 +241,38 @@ def get_mcp_tools():
                     "rack": {"type": "string", "description": "Rack name"},
                     "user": {"type": "string", "description": "User who made the reservation"},
                     "description": {"type": "string", "description": "Reservation description (partial match)"},
+            "name": "search_device_bays",
+            "description": "Search for device bays in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "device_id": {"type": "integer", "description": "Device ID to filter bays"},
+                    "device_name": {"type": "string", "description": "Device name to filter bays"},
+                    "name": {"type": "string", "description": "Bay name (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_device_bay_details",
+            "description": "Get detailed information about a specific device bay",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "bay_id": {"type": "integer", "description": "NetBox device bay ID"},
+                    "device_id": {"type": "integer", "description": "Device ID (when combined with bay name)"},
+                    "bay_name": {"type": "string", "description": "Bay name (when combined with device ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_device_bay_templates",
+            "description": "Search for device bay templates in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "device_type_id": {"type": "integer", "description": "Device type ID to filter templates"},
+                    "name": {"type": "string", "description": "Template name (partial match)"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -263,6 +295,25 @@ def get_mcp_tools():
                 "properties": {
                     "name": {"type": "string", "description": "Rack role name (partial match)"},
                     "slug": {"type": "string", "description": "Rack role slug"},
+
+            "name": "get_device_bay_template_details",
+            "description": "Get detailed information about a specific device bay template",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "template_id": {"type": "integer", "description": "NetBox device bay template ID"}
+                }
+            }
+        },
+        {
+            "name": "search_device_roles",
+            "description": "Search for device roles in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Role name (partial match)"},
+                    "slug": {"type": "string", "description": "Role slug"},
+                    "color": {"type": "string", "description": "Role color"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -278,6 +329,42 @@ def get_mcp_tools():
                     "slug": {"type": "string", "description": "Rack type slug"},
                     "u_height": {"type": "integer", "description": "Filter by rack height in units"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+            "name": "get_device_role_details",
+            "description": "Get detailed information about a specific device role",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "role_id": {"type": "integer", "description": "NetBox device role ID"},
+                    "role_name": {"type": "string", "description": "Role name (alternative to ID)"},
+                    "role_slug": {"type": "string", "description": "Role slug (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_device_types",
+            "description": "Search for device types in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Device model (partial match)"},
+                    "manufacturer": {"type": "string", "description": "Manufacturer name"},
+                    "slug": {"type": "string", "description": "Device type slug"},
+                    "part_number": {"type": "string", "description": "Part number"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_device_type_details",
+            "description": "Get detailed information about a specific device type",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "type_id": {"type": "integer", "description": "NetBox device type ID"},
+                    "model": {"type": "string", "description": "Device model (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Device type slug (alternative to ID)"}
                 }
             }
         }
@@ -697,6 +784,14 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "get_rack_reservation_details": get_rack_reservation_details,
         "search_rack_roles": search_rack_roles,
         "search_rack_types": search_rack_types
+        "search_device_bays": search_device_bays,
+        "get_device_bay_details": get_device_bay_details,
+        "search_device_bay_templates": search_device_bay_templates,
+        "get_device_bay_template_details": get_device_bay_template_details,
+        "search_device_roles": search_device_roles,
+        "get_device_role_details": get_device_role_details,
+        "search_device_types": search_device_types,
+        "get_device_type_details": get_device_type_details
     }
     
     if tool_name not in tools:
@@ -1391,6 +1486,304 @@ async def search_ip_addresses(args: Dict[str, Any], netbox_client: NetBoxClient)
             output += f"  - Assigned to: {assigned_object.get('name', 'Unknown')}\n"
         
         output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_device_bays(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for device bays"""
+    params = {"limit": args.get("limit", 10)}
+    
+    # Handle device filtering by ID or name
+    device_id = args.get("device_id")
+    device_name = args.get("device_name")
+    
+    if device_name and not device_id:
+        search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+        devices = search_result.get("results", [])
+        if not devices:
+            return [{"type": "text", "text": f"Device '{device_name}' not found"}]
+        device_id = devices[0]["id"]
+    
+    if device_id:
+        params["device_id"] = device_id
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    
+    result = await netbox_client.get("dcim/device-bays/", params)
+    bays = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not bays:
+        return [{"type": "text", "text": "No device bays found matching the criteria."}]
+    
+    output = f"Found {count} device bays:\n\n"
+    for bay in bays:
+        device_name = bay.get("device", {}).get("name", "Unknown")
+        installed_device = bay.get("installed_device")
+        
+        output += f"• **{bay['name']}** (ID: {bay['id']})\n"
+        output += f"  - Device: {device_name}\n"
+        output += f"  - Label: {bay.get('label', 'N/A')}\n"
+        
+        if installed_device:
+            output += f"  - Installed Device: {installed_device.get('name', 'Unknown')}\n"
+        else:
+            output += f"  - Status: Empty\n"
+        
+        if bay.get("description"):
+            output += f"  - Description: {bay['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_device_bay_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed device bay information"""
+    bay_id = args.get("bay_id")
+    device_id = args.get("device_id")
+    bay_name = args.get("bay_name")
+    
+    if not bay_id and not (device_id and bay_name):
+        return [{"type": "text", "text": "Either bay_id or both device_id and bay_name must be provided"}]
+    
+    if not bay_id:
+        # Search for bay by device and name
+        search_result = await netbox_client.get("dcim/device-bays/", {"device_id": device_id, "name": bay_name})
+        bays = search_result.get("results", [])
+        if not bays:
+            return [{"type": "text", "text": f"Device bay '{bay_name}' not found in device ID {device_id}"}]
+        bay_id = bays[0]["id"]
+    
+    bay = await netbox_client.get(f"dcim/device-bays/{bay_id}/")
+    
+    device_name = bay.get("device", {}).get("name", "Unknown")
+    installed_device = bay.get("installed_device")
+    
+    output = f"# Device Bay Details: {bay['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {bay['id']}\n"
+    output += f"- Name: {bay['name']}\n"
+    output += f"- Label: {bay.get('label', 'N/A')}\n"
+    output += f"- Device: {device_name}\n\n"
+    
+    if installed_device:
+        output += f"**Installed Device:**\n"
+        output += f"- Name: {installed_device.get('name', 'Unknown')}\n"
+        output += f"- Model: {installed_device.get('device_type', {}).get('model', 'Unknown')}\n"
+    else:
+        output += f"**Status:** Empty bay\n"
+    
+    if bay.get("description"):
+        output += f"\n**Description:** {bay['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_device_bay_templates(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for device bay templates"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "device_type_id" in args:
+        params["device_type_id"] = args["device_type_id"]
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    
+    result = await netbox_client.get("dcim/device-bay-templates/", params)
+    templates = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not templates:
+        return [{"type": "text", "text": "No device bay templates found matching the criteria."}]
+    
+    output = f"Found {count} device bay templates:\n\n"
+    for template in templates:
+        device_type = template.get("device_type", {})
+        device_type_name = f"{device_type.get('manufacturer', {}).get('name', 'Unknown')} {device_type.get('model', 'Unknown')}"
+        
+        output += f"• **{template['name']}** (ID: {template['id']})\n"
+        output += f"  - Device Type: {device_type_name}\n"
+        output += f"  - Label: {template.get('label', 'N/A')}\n"
+        
+        if template.get("description"):
+            output += f"  - Description: {template['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_device_bay_template_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed device bay template information"""
+    template_id = args.get("template_id")
+    
+    if not template_id:
+        return [{"type": "text", "text": "template_id must be provided"}]
+    
+    template = await netbox_client.get(f"dcim/device-bay-templates/{template_id}/")
+    
+    device_type = template.get("device_type", {})
+    device_type_name = f"{device_type.get('manufacturer', {}).get('name', 'Unknown')} {device_type.get('model', 'Unknown')}"
+    
+    output = f"# Device Bay Template Details: {template['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {template['id']}\n"
+    output += f"- Name: {template['name']}\n"
+    output += f"- Label: {template.get('label', 'N/A')}\n"
+    output += f"- Device Type: {device_type_name}\n"
+    
+    if template.get("description"):
+        output += f"\n**Description:** {template['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_device_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for device roles"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "color" in args:
+        params["color"] = args["color"]
+    
+    result = await netbox_client.get("dcim/device-roles/", params)
+    roles = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not roles:
+        return [{"type": "text", "text": "No device roles found matching the criteria."}]
+    
+    output = f"Found {count} device roles:\n\n"
+    for role in roles:
+        output += f"• **{role['name']}** (ID: {role['id']})\n"
+        output += f"  - Slug: {role['slug']}\n"
+        output += f"  - Color: {role.get('color', 'N/A')}\n"
+        output += f"  - VM Role: {'Yes' if role.get('vm_role') else 'No'}\n"
+        
+        if role.get("description"):
+            output += f"  - Description: {role['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_device_role_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed device role information"""
+    role_id = args.get("role_id")
+    role_name = args.get("role_name")
+    role_slug = args.get("role_slug")
+    
+    if not role_id and not role_name and not role_slug:
+        return [{"type": "text", "text": "Either role_id, role_name, or role_slug must be provided"}]
+    
+    if not role_id:
+        # Search for role by name or slug
+        if role_name:
+            search_result = await netbox_client.get("dcim/device-roles/", {"name": role_name})
+        else:
+            search_result = await netbox_client.get("dcim/device-roles/", {"slug": role_slug})
+        
+        roles = search_result.get("results", [])
+        if not roles:
+            identifier = role_name or role_slug
+            return [{"type": "text", "text": f"Device role '{identifier}' not found"}]
+        role_id = roles[0]["id"]
+    
+    role = await netbox_client.get(f"dcim/device-roles/{role_id}/")
+    
+    output = f"# Device Role Details: {role['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {role['id']}\n"
+    output += f"- Name: {role['name']}\n"
+    output += f"- Slug: {role['slug']}\n"
+    output += f"- Color: {role.get('color', 'N/A')}\n"
+    output += f"- VM Role: {'Yes' if role.get('vm_role') else 'No'}\n"
+    
+    if role.get("description"):
+        output += f"\n**Description:** {role['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_device_types(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for device types"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "model" in args:
+        params["model__icontains"] = args["model"]
+    if "manufacturer" in args:
+        params["manufacturer"] = args["manufacturer"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "part_number" in args:
+        params["part_number__icontains"] = args["part_number"]
+    
+    result = await netbox_client.get("dcim/device-types/", params)
+    device_types = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not device_types:
+        return [{"type": "text", "text": "No device types found matching the criteria."}]
+    
+    output = f"Found {count} device types:\n\n"
+    for device_type in device_types:
+        manufacturer_name = device_type.get("manufacturer", {}).get("name", "Unknown")
+        
+        output += f"• **{device_type['model']}** (ID: {device_type['id']})\n"
+        output += f"  - Manufacturer: {manufacturer_name}\n"
+        output += f"  - Slug: {device_type['slug']}\n"
+        output += f"  - Part Number: {device_type.get('part_number', 'N/A')}\n"
+        output += f"  - Height (U): {device_type.get('u_height', 'N/A')}\n"
+        
+        if device_type.get("description"):
+            output += f"  - Description: {device_type['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_device_type_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed device type information"""
+    type_id = args.get("type_id")
+    model = args.get("model")
+    slug = args.get("slug")
+    
+    if not type_id and not model and not slug:
+        return [{"type": "text", "text": "Either type_id, model, or slug must be provided"}]
+    
+    if not type_id:
+        # Search for device type by model or slug
+        if model:
+            search_result = await netbox_client.get("dcim/device-types/", {"model": model})
+        else:
+            search_result = await netbox_client.get("dcim/device-types/", {"slug": slug})
+        
+        device_types = search_result.get("results", [])
+        if not device_types:
+            identifier = model or slug
+            return [{"type": "text", "text": f"Device type '{identifier}' not found"}]
+        type_id = device_types[0]["id"]
+    
+    device_type = await netbox_client.get(f"dcim/device-types/{type_id}/")
+    
+    manufacturer_name = device_type.get("manufacturer", {}).get("name", "Unknown")
+    
+    output = f"# Device Type Details: {device_type['model']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {device_type['id']}\n"
+    output += f"- Model: {device_type['model']}\n"
+    output += f"- Manufacturer: {manufacturer_name}\n"
+    output += f"- Slug: {device_type['slug']}\n"
+    output += f"- Part Number: {device_type.get('part_number', 'N/A')}\n\n"
+    
+    output += f"**Physical Specifications:**\n"
+    output += f"- Height (U): {device_type.get('u_height', 'N/A')}\n"
+    output += f"- Full Depth: {'Yes' if device_type.get('is_full_depth') else 'No'}\n"
+    output += f"- Subdevice Role: {device_type.get('subdevice_role', {}).get('label', 'None') if device_type.get('subdevice_role') else 'None'}\n"
+    
+    if device_type.get("weight"):
+        output += f"- Weight: {device_type['weight']} {device_type.get('weight_unit', {}).get('label', '')}\n"
+    
+    if device_type.get("description"):
+        output += f"\n**Description:** {device_type['description']}\n"
     
     return [{"type": "text", "text": output}]
 

@@ -50,6 +50,122 @@ Retrieve network interfaces for a specific device.
 - "Show interfaces for switch-01"
 - "Get enabled interfaces for device ID 456"
 
+### search_device_bays
+Search for device bays in NetBox.
+
+**Parameters:**
+- `device_id` (integer, optional): Device ID to filter bays
+- `device_name` (string, optional): Device name to filter bays
+- `name` (string, optional): Bay name (partial match)
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of device bays with device info, installation status, and labels.
+
+**Example queries:**
+- "Search for device bays in device ID 123"
+- "Find all bays in router-01"
+- "Show me empty device bays"
+
+### get_device_bay_details
+Get detailed information about a specific device bay.
+
+**Parameters:**
+- `bay_id` (integer): NetBox device bay ID
+- `device_id` (integer): Device ID (when combined with bay name)
+- `bay_name` (string): Bay name (when combined with device ID)
+
+**Returns:** Detailed device bay information including installed device details.
+
+**Example queries:**
+- "Get details for device bay ID 456"
+- "Show me bay 'Slot1' in device ID 123"
+
+### search_device_bay_templates
+Search for device bay templates in NetBox.
+
+**Parameters:**
+- `device_type_id` (integer, optional): Device type ID to filter templates
+- `name` (string, optional): Template name (partial match)
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of device bay templates with device type and label information.
+
+**Example queries:**
+- "Search for device bay templates"
+- "Find bay templates for device type ID 789"
+
+### get_device_bay_template_details
+Get detailed information about a specific device bay template.
+
+**Parameters:**
+- `template_id` (integer): NetBox device bay template ID
+
+**Returns:** Detailed device bay template information including device type details.
+
+**Example queries:**
+- "Get details for device bay template ID 101"
+
+### search_device_roles
+Search for device roles in NetBox.
+
+**Parameters:**
+- `name` (string, optional): Role name (partial match)
+- `slug` (string, optional): Role slug
+- `color` (string, optional): Role color
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of device roles with name, slug, color, and VM role status.
+
+**Example queries:**
+- "Search for device roles"
+- "Find roles with 'router' in the name"
+- "Show me all VM-capable roles"
+
+### get_device_role_details
+Get detailed information about a specific device role.
+
+**Parameters:**
+- `role_id` (integer): NetBox device role ID
+- `role_name` (string): Role name (alternative to ID)
+- `role_slug` (string): Role slug (alternative to ID)
+
+**Returns:** Detailed device role information including description and capabilities.
+
+**Example queries:**
+- "Get details for device role ID 42"
+- "Show me details for the 'router' role"
+
+### search_device_types
+Search for device types in NetBox.
+
+**Parameters:**
+- `model` (string, optional): Device model (partial match)
+- `manufacturer` (string, optional): Manufacturer name
+- `slug` (string, optional): Device type slug
+- `part_number` (string, optional): Part number
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of device types with manufacturer, model, part number, and specifications.
+
+**Example queries:**
+- "Search for Cisco device types"
+- "Find device types with 'switch' in the model"
+- "Show me all Juniper routers"
+
+### get_device_type_details
+Get detailed information about a specific device type.
+
+**Parameters:**
+- `type_id` (integer): NetBox device type ID
+- `model` (string): Device model (alternative to ID)
+- `slug` (string): Device type slug (alternative to ID)
+
+**Returns:** Detailed device type information including physical specifications and capabilities.
+
+**Example queries:**
+- "Get details for device type ID 987"
+- "Show me details for the 'EX4300-48T' model"
+
 ## Site Management Tools
 
 ### get_sites
