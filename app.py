@@ -387,7 +387,11 @@ def get_mcp_tools():
                 "properties": {
                     "name": {"type": "string", "description": "Policy name (partial match)"},
                     "description": {"type": "string", "description": "Policy description (partial match)"},
-
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "search_asns",
             "description": "Search for Autonomous System Numbers (ASNs)",
             "inputSchema": {
@@ -409,6 +413,11 @@ def get_mcp_tools():
                     "policy_id": {"type": "integer", "description": "Translation policy ID"},
                     "original_vid": {"type": "integer", "description": "Original VLAN ID"},
                     "translated_vid": {"type": "integer", "description": "Translated VLAN ID"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_asn_details",
             "description": "Get detailed information about a specific ASN",
             "inputSchema": {
@@ -467,6 +476,11 @@ def get_mcp_tools():
                     "protocol": {"type": "string", "description": "FHRP protocol (hsrp, vrrp, glbp, carp)"},
                     "group_id": {"type": "integer", "description": "Group ID"},
                     "auth_type": {"type": "string", "description": "Authentication type"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_aggregate_details",
             "description": "Get detailed information about a specific aggregate",
             "inputSchema": {
@@ -501,6 +515,11 @@ def get_mcp_tools():
                     "group_id": {"type": "integer", "description": "FHRP group ID"},
                     "interface_id": {"type": "integer", "description": "Interface ID"},
                     "priority": {"type": "integer", "description": "Assignment priority"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_ip_range_details",
             "description": "Get detailed information about a specific IP range",
             "inputSchema": {
@@ -533,7 +552,11 @@ def get_mcp_tools():
                     "name": {"type": "string", "description": "Route target name (partial match)"},
                     "description": {"type": "string", "description": "Description (partial match)"},
                     "tenant": {"type": "string", "description": "Tenant name"},
-
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_rir_details",
             "description": "Get detailed information about a specific RIR",
             "inputSchema": {
@@ -568,7 +591,11 @@ def get_mcp_tools():
                     "virtual_machine_id": {"type": "integer", "description": "Virtual machine ID"},
                     "protocol": {"type": "string", "description": "Protocol (tcp, udp, sctp)"},
                     "ports": {"type": "string", "description": "Port numbers or ranges"},
-
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_ipam_role_details",
             "description": "Get detailed information about a specific IPAM role",
             "inputSchema": {
@@ -605,6 +632,8 @@ def get_mcp_tools():
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
+        },
+        {
             "name": "get_vrf_details",
             "description": "Get detailed information about a specific VRF",
             "inputSchema": {
