@@ -241,6 +241,11 @@ def get_mcp_tools():
                     "rack": {"type": "string", "description": "Rack name"},
                     "user": {"type": "string", "description": "User who made the reservation"},
                     "description": {"type": "string", "description": "Reservation description (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "search_device_bays",
             "description": "Search for device bays in NetBox",
             "inputSchema": {
@@ -295,7 +300,11 @@ def get_mcp_tools():
                 "properties": {
                     "name": {"type": "string", "description": "Rack role name (partial match)"},
                     "slug": {"type": "string", "description": "Rack role slug"},
-
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_device_bay_template_details",
             "description": "Get detailed information about a specific device bay template",
             "inputSchema": {
@@ -331,6 +340,8 @@ def get_mcp_tools():
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
+        },
+        {
             "name": "get_device_role_details",
             "description": "Get detailed information about a specific device role",
             "inputSchema": {
@@ -783,7 +794,7 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_rack_reservations": search_rack_reservations,
         "get_rack_reservation_details": get_rack_reservation_details,
         "search_rack_roles": search_rack_roles,
-        "search_rack_types": search_rack_types
+        "search_rack_types": search_rack_types,
         "search_device_bays": search_device_bays,
         "get_device_bay_details": get_device_bay_details,
         "search_device_bay_templates": search_device_bay_templates,
