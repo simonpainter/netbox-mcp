@@ -198,6 +198,37 @@ Get comprehensive site information including device and rack summaries.
 - "Get full details for the London site"
 - "Show me site details for ID 789 without racks"
 
+### search_site_groups
+Search for site groups in NetBox. Site groups organize sites by role or function and can be nested hierarchically.
+
+**Parameters:**
+- `name` (string, optional): Site group name (partial match)
+- `slug` (string, optional): Site group slug
+- `parent` (string, optional): Parent site group name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of site groups with ID, name, slug, parent, and description information.
+
+**Example queries:**
+- "List all site groups"
+- "Find site groups with 'datacenter' in the name"
+- "Search for child groups under corporate group"
+
+### get_site_group_details
+Get detailed information about a specific site group including hierarchy and site count.
+
+**Parameters:**
+- `group_id` (integer): NetBox site group ID
+- `name` (string): Site group name (alternative to ID)
+- `slug` (string): Site group slug (alternative to ID)
+
+**Returns:** Detailed site group information including parent relationships and site count.
+
+**Example queries:**
+- "Get details for site group ID 42"
+- "Show me details for the corporate site group"
+- "Get info about the datacenter-east group"
+
 ## IP Address Management Tools
 
 ### search_ip_addresses
@@ -734,3 +765,7 @@ Search for rack types and models.
 - "Show me rack reservations for the server room"
 - "What rack types do we have from Dell?"
 - "Get details for rack-01 including utilization"
+- "List all site groups"
+- "Find site groups with 'datacenter' in the name"
+- "Get details for the corporate site group"
+- "Show me all production site groups"
