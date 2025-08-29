@@ -229,6 +229,37 @@ Get detailed information about a specific site group including hierarchy and sit
 - "Show me details for the corporate site group"
 - "Get info about the datacenter-east group"
 
+### search_regions
+Search for regions in NetBox. Regions arrange sites geographically and can be nested hierarchically to create continent/country/city structures.
+
+**Parameters:**
+- `name` (string, optional): Region name (partial match)
+- `slug` (string, optional): Region slug
+- `parent` (string, optional): Parent region name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of regions with ID, name, slug, parent, and description information.
+
+**Example queries:**
+- "List all regions"
+- "Find regions with 'europe' in the name"
+- "Search for child regions under North America"
+
+### get_region_details
+Get detailed information about a specific region including hierarchy and site count.
+
+**Parameters:**
+- `region_id` (integer): NetBox region ID
+- `name` (string): Region name (alternative to ID)
+- `slug` (string): Region slug (alternative to ID)
+
+**Returns:** Detailed region information including parent relationships, child region count, and site count.
+
+**Example queries:**
+- "Get details for region ID 15"
+- "Show me details for the Europe region"
+- "Get info about the asia-pacific region"
+
 ## IP Address Management Tools
 
 ### search_ip_addresses
