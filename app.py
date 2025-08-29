@@ -669,6 +669,31 @@ def get_mcp_tools():
                     "slug": {"type": "string", "description": "VLAN group slug (alternative to ID)"}
                 }
             }
+        },
+        {
+            "name": "search_site_groups",
+            "description": "Search for site groups in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Site group name (partial match)"},
+                    "slug": {"type": "string", "description": "Site group slug"},
+                    "parent": {"type": "string", "description": "Parent site group name"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_site_group_details",
+            "description": "Get detailed information about a specific site group",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "group_id": {"type": "integer", "description": "NetBox site group ID"},
+                    "name": {"type": "string", "description": "Site group name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Site group slug (alternative to ID)"}
+                }
+            }
         }
     ]
 
@@ -1116,7 +1141,9 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_vrfs": search_vrfs,
         "get_vrf_details": get_vrf_details,
         "search_vlan_groups": search_vlan_groups,
-        "get_vlan_group_details": get_vlan_group_details
+        "get_vlan_group_details": get_vlan_group_details,
+        "search_site_groups": search_site_groups,
+        "get_site_group_details": get_site_group_details
     }
     
     if tool_name not in tools:
@@ -2815,6 +2842,83 @@ async def get_vlan_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
     
     if group.get("description"):
         output += f"- Description: {group['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_site_groups(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for site groups"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "parent" in args:
+        params["parent"] = args["parent"]
+    
+    result = await netbox_client.get("dcim/site-groups/", params)
+    groups = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not groups:
+        return [{"type": "text", "text": "No site groups found matching the criteria."}]
+    
+    output = f"Found {count} site groups:\n\n"
+    for group in groups:
+        parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
+        
+        output += f"• **{group['name']}** ({group['slug']})\n"
+        output += f"  - ID: {group['id']}\n"
+        output += f"  - Parent: {parent_name}\n"
+        
+        if group.get("description"):
+            output += f"  - Description: {group['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific site group"""
+    group_id = args.get("group_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not group_id and not name and not slug:
+        return [{"type": "text", "text": "Either group_id, name, or slug must be provided"}]
+    
+    if not group_id:
+        if name:
+            search_result = await netbox_client.get("dcim/site-groups/", {"name": name})
+        else:
+            search_result = await netbox_client.get("dcim/site-groups/", {"slug": slug})
+        
+        groups = search_result.get("results", [])
+        if not groups:
+            identifier = name or slug
+            return [{"type": "text", "text": f"Site group '{identifier}' not found"}]
+        group_id = groups[0]["id"]
+    
+    group = await netbox_client.get(f"dcim/site-groups/{group_id}/")
+    parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
+    
+    output = f"# Site Group Details: {group['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {group['id']}\n"
+    output += f"- Name: {group['name']}\n"
+    output += f"- Slug: {group['slug']}\n"
+    output += f"- Parent: {parent_name}\n"
+    
+    if group.get("description"):
+        output += f"- Description: {group['description']}\n"
+    
+    # Get site count for this group
+    try:
+        sites_result = await netbox_client.get("dcim/sites/", {"group": group['id'], "limit": 1})
+        site_count = sites_result.get("count", 0)
+        output += f"- Sites in this group: {site_count}\n"
+    except:
+        pass  # If sites endpoint doesn't support group filter, skip the count
     
     return [{"type": "text", "text": output}]
 
