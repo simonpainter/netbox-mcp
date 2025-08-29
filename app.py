@@ -222,6 +222,30 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "get_rack_details",
+            "description": "Get detailed information about a specific rack",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "rack_id": {"type": "integer", "description": "NetBox rack ID"},
+                    "rack_name": {"type": "string", "description": "Rack name (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_rack_reservations",
+            "description": "Search for rack reservations",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "rack": {"type": "string", "description": "Rack name"},
+                    "user": {"type": "string", "description": "User who made the reservation"},
+                    "description": {"type": "string", "description": "Reservation description (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "search_device_bays",
             "description": "Search for device bays in NetBox",
             "inputSchema": {
@@ -259,6 +283,28 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "get_rack_reservation_details",
+            "description": "Get detailed information about a specific rack reservation",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "reservation_id": {"type": "integer", "description": "NetBox rack reservation ID"}
+                }
+            }
+        },
+        {
+            "name": "search_rack_roles",
+            "description": "Search for rack roles",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Rack role name (partial match)"},
+                    "slug": {"type": "string", "description": "Rack role slug"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
             "name": "get_device_bay_template_details",
             "description": "Get detailed information about a specific device bay template",
             "inputSchema": {
@@ -277,6 +323,20 @@ def get_mcp_tools():
                     "name": {"type": "string", "description": "Role name (partial match)"},
                     "slug": {"type": "string", "description": "Role slug"},
                     "color": {"type": "string", "description": "Role color"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_rack_types",
+            "description": "Search for rack types",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Rack type model (partial match)"},
+                    "manufacturer": {"type": "string", "description": "Manufacturer name"},
+                    "slug": {"type": "string", "description": "Rack type slug"},
+                    "u_height": {"type": "integer", "description": "Filter by rack height in units"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -327,6 +387,15 @@ def get_mcp_tools():
                 "properties": {
                     "name": {"type": "string", "description": "Policy name (partial match)"},
                     "description": {"type": "string", "description": "Policy description (partial match)"},
+
+            "name": "search_asns",
+            "description": "Search for Autonomous System Numbers (ASNs)",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "asn": {"type": "integer", "description": "Specific ASN number"},
+                    "name": {"type": "string", "description": "ASN name (partial match)"},
+                    "rir": {"type": "string", "description": "Regional Internet Registry"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -340,6 +409,50 @@ def get_mcp_tools():
                     "policy_id": {"type": "integer", "description": "Translation policy ID"},
                     "original_vid": {"type": "integer", "description": "Original VLAN ID"},
                     "translated_vid": {"type": "integer", "description": "Translated VLAN ID"},
+            "name": "get_asn_details",
+            "description": "Get detailed information about a specific ASN",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "asn_id": {"type": "integer", "description": "NetBox ASN ID"},
+                    "asn": {"type": "integer", "description": "ASN number (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_asn_ranges",
+            "description": "Search for ASN ranges",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "ASN range name (partial match)"},
+                    "rir": {"type": "string", "description": "Regional Internet Registry"},
+                    "start": {"type": "integer", "description": "Range start ASN"},
+                    "end": {"type": "integer", "description": "Range end ASN"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_asn_range_details",
+            "description": "Get detailed information about a specific ASN range",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "range_id": {"type": "integer", "description": "NetBox ASN range ID"},
+                    "name": {"type": "string", "description": "ASN range name (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_aggregates",
+            "description": "Search for IP address aggregates",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "prefix": {"type": "string", "description": "Aggregate prefix (e.g., '10.0.0.0/8')"},
+                    "rir": {"type": "string", "description": "Regional Internet Registry"},
+                    "family": {"type": "integer", "description": "IP family (4 or 6)"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -354,6 +467,27 @@ def get_mcp_tools():
                     "protocol": {"type": "string", "description": "FHRP protocol (hsrp, vrrp, glbp, carp)"},
                     "group_id": {"type": "integer", "description": "Group ID"},
                     "auth_type": {"type": "string", "description": "Authentication type"},
+            "name": "get_aggregate_details",
+            "description": "Get detailed information about a specific aggregate",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "aggregate_id": {"type": "integer", "description": "NetBox aggregate ID"},
+                    "prefix": {"type": "string", "description": "Aggregate prefix (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_ip_ranges",
+            "description": "Search for IP address ranges",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "start_address": {"type": "string", "description": "Range start address"},
+                    "end_address": {"type": "string", "description": "Range end address"},
+                    "vrf": {"type": "string", "description": "VRF name"},
+                    "role": {"type": "string", "description": "IP range role"},
+                    "status": {"type": "string", "description": "IP range status"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -367,6 +501,25 @@ def get_mcp_tools():
                     "group_id": {"type": "integer", "description": "FHRP group ID"},
                     "interface_id": {"type": "integer", "description": "Interface ID"},
                     "priority": {"type": "integer", "description": "Assignment priority"},
+            "name": "get_ip_range_details",
+            "description": "Get detailed information about a specific IP range",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "range_id": {"type": "integer", "description": "NetBox IP range ID"},
+                    "start_address": {"type": "string", "description": "Range start address (when combined with end_address)"},
+                    "end_address": {"type": "string", "description": "Range end address (when combined with start_address)"}
+                }
+            }
+        },
+        {
+            "name": "search_rirs",
+            "description": "Search for Regional Internet Registries (RIRs)",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "RIR name (partial match)"},
+                    "slug": {"type": "string", "description": "RIR slug"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -380,6 +533,26 @@ def get_mcp_tools():
                     "name": {"type": "string", "description": "Route target name (partial match)"},
                     "description": {"type": "string", "description": "Description (partial match)"},
                     "tenant": {"type": "string", "description": "Tenant name"},
+
+            "name": "get_rir_details",
+            "description": "Get detailed information about a specific RIR",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "rir_id": {"type": "integer", "description": "NetBox RIR ID"},
+                    "name": {"type": "string", "description": "RIR name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "RIR slug (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_ipam_roles",
+            "description": "Search for IPAM roles (prefix/VLAN roles)",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Role name (partial match)"},
+                    "slug": {"type": "string", "description": "Role slug"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -395,6 +568,26 @@ def get_mcp_tools():
                     "virtual_machine_id": {"type": "integer", "description": "Virtual machine ID"},
                     "protocol": {"type": "string", "description": "Protocol (tcp, udp, sctp)"},
                     "ports": {"type": "string", "description": "Port numbers or ranges"},
+
+            "name": "get_ipam_role_details",
+            "description": "Get detailed information about a specific IPAM role",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "role_id": {"type": "integer", "description": "NetBox IPAM role ID"},
+                    "name": {"type": "string", "description": "Role name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Role slug (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_vrfs",
+            "description": "Search for Virtual Routing and Forwarding instances (VRFs)",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "VRF name (partial match)"},
+                    "rd": {"type": "string", "description": "Route distinguisher"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
                 }
             }
@@ -410,6 +603,41 @@ def get_mcp_tools():
                     "ports": {"type": "string", "description": "Port numbers or ranges"},
                     "description": {"type": "string", "description": "Description (partial match)"},
                     "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+            "name": "get_vrf_details",
+            "description": "Get detailed information about a specific VRF",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "vrf_id": {"type": "integer", "description": "NetBox VRF ID"},
+                    "name": {"type": "string", "description": "VRF name (alternative to ID)"},
+                    "rd": {"type": "string", "description": "Route distinguisher (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_vlan_groups",
+            "description": "Search for VLAN groups",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "VLAN group name (partial match)"},
+                    "slug": {"type": "string", "description": "VLAN group slug"},
+                    "site": {"type": "string", "description": "Filter by site"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_vlan_group_details",
+            "description": "Get detailed information about a specific VLAN group",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "group_id": {"type": "integer", "description": "NetBox VLAN group ID"},
+                    "name": {"type": "string", "description": "VLAN group name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "VLAN group slug (alternative to ID)"}
                 }
             }
         }
@@ -824,6 +1052,11 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_vlans": search_vlans,
         "search_circuits": search_circuits,
         "search_racks": search_racks,
+        "get_rack_details": get_rack_details,
+        "search_rack_reservations": search_rack_reservations,
+        "get_rack_reservation_details": get_rack_reservation_details,
+        "search_rack_roles": search_rack_roles,
+        "search_rack_types": search_rack_types,
         "search_device_bays": search_device_bays,
         "get_device_bay_details": get_device_bay_details,
         "search_device_bay_templates": search_device_bay_templates,
@@ -838,7 +1071,23 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_fhrp_group_assignments": search_fhrp_group_assignments,
         "search_route_targets": search_route_targets,
         "search_services": search_services,
-        "search_service_templates": search_service_templates
+        "search_service_templates": search_service_templates,
+        "search_asns": search_asns,
+        "get_asn_details": get_asn_details,
+        "search_asn_ranges": search_asn_ranges,
+        "get_asn_range_details": get_asn_range_details,
+        "search_aggregates": search_aggregates,
+        "get_aggregate_details": get_aggregate_details,
+        "search_ip_ranges": search_ip_ranges,
+        "get_ip_range_details": get_ip_range_details,
+        "search_rirs": search_rirs,
+        "get_rir_details": get_rir_details,
+        "search_ipam_roles": search_ipam_roles,
+        "get_ipam_role_details": get_ipam_role_details,
+        "search_vrfs": search_vrfs,
+        "get_vrf_details": get_vrf_details,
+        "search_vlan_groups": search_vlan_groups,
+        "get_vlan_group_details": get_vlan_group_details
     }
     
     if tool_name not in tools:
@@ -1212,6 +1461,211 @@ async def search_racks(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         
         if rack.get("description"):
             output += f"  - Description: {rack['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_rack_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed rack information"""
+    rack_id = args.get("rack_id")
+    rack_name = args.get("rack_name")
+    
+    if not rack_id and not rack_name:
+        return [{"type": "text", "text": "Either rack_id or rack_name must be provided"}]
+    
+    if rack_name and not rack_id:
+        search_result = await netbox_client.get("dcim/racks/", {"name": rack_name})
+        racks = search_result.get("results", [])
+        if not racks:
+            return [{"type": "text", "text": f"Rack '{rack_name}' not found"}]
+        rack_id = racks[0]["id"]
+    
+    rack = await netbox_client.get(f"dcim/racks/{rack_id}/")
+    
+    site_name = rack.get("site", {}).get("name", "Unknown")
+    location = rack.get("location", {}).get("name", "No location") if rack.get("location") else "No location"
+    status = rack.get("status", {}).get("label", "Unknown")
+    role = rack.get("role", {}).get("name", "No role") if rack.get("role") else "No role"
+    rack_type = rack.get("type", {}).get("model", "No type") if rack.get("type") else "No type"
+    manufacturer = rack.get("type", {}).get("manufacturer", {}).get("name", "Unknown") if rack.get("type", {}).get("manufacturer") else "Unknown"
+    
+    output = f"# Rack Details: {rack['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {rack['id']}\n"
+    output += f"- Name: {rack['name']}\n"
+    output += f"- Status: {status}\n"
+    output += f"- Site: {site_name}\n"
+    output += f"- Location: {location}\n"
+    output += f"- Role: {role}\n\n"
+    
+    output += f"**Physical Specifications:**\n"
+    output += f"- Height: {rack.get('u_height', 'Unknown')}U\n"
+    output += f"- Type: {rack_type}\n"
+    output += f"- Manufacturer: {manufacturer}\n"
+    output += f"- Width: {rack.get('width', {}).get('label', 'Unknown') if rack.get('width') else 'Unknown'}\n"
+    output += f"- Depth: {rack.get('depth_mm', 'Unknown')}mm\n\n"
+    
+    if rack.get("description"):
+        output += f"**Description:**\n{rack['description']}\n\n"
+    
+    if rack.get("comments"):
+        output += f"**Comments:**\n{rack['comments']}\n\n"
+    
+    # Get rack utilization info
+    try:
+        elevation = await netbox_client.get(f"dcim/racks/{rack_id}/elevation/")
+        if elevation:
+            output += f"**Utilization:**\n"
+            used_units = sum(1 for unit in elevation if unit.get("device"))
+            total_units = rack.get("u_height", 0)
+            if total_units > 0:
+                utilization = (used_units / total_units) * 100
+                output += f"- Used Units: {used_units}/{total_units} ({utilization:.1f}%)\n"
+    except Exception:
+        # Elevation endpoint might not be available or accessible
+        pass
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rack_reservations(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for rack reservations"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "rack" in args:
+        params["rack"] = args["rack"]
+    if "user" in args:
+        params["user"] = args["user"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("dcim/rack-reservations/", params)
+    reservations = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not reservations:
+        return [{"type": "text", "text": "No rack reservations found matching the criteria."}]
+    
+    output = f"Found {count} rack reservations:\n\n"
+    for reservation in reservations:
+        rack_name = reservation.get("rack", {}).get("name", "Unknown")
+        user = reservation.get("user", {}).get("username", "Unknown")
+        units = reservation.get("units", [])
+        created = reservation.get("created", "Unknown")
+        
+        output += f"• **Reservation ID: {reservation['id']}**\n"
+        output += f"  - Rack: {rack_name}\n"
+        output += f"  - User: {user}\n"
+        output += f"  - Units: {', '.join(map(str, units)) if units else 'No units specified'}\n"
+        output += f"  - Created: {created[:10] if created != 'Unknown' else 'Unknown'}\n"
+        
+        if reservation.get("description"):
+            output += f"  - Description: {reservation['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_rack_reservation_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed rack reservation information"""
+    reservation_id = args.get("reservation_id")
+    
+    if not reservation_id:
+        return [{"type": "text", "text": "reservation_id must be provided"}]
+    
+    try:
+        reservation = await netbox_client.get(f"dcim/rack-reservations/{reservation_id}/")
+    except Exception as e:
+        return [{"type": "text", "text": f"Rack reservation with ID {reservation_id} not found"}]
+    
+    rack_name = reservation.get("rack", {}).get("name", "Unknown")
+    rack_id = reservation.get("rack", {}).get("id", "Unknown")
+    user = reservation.get("user", {}).get("username", "Unknown")
+    units = reservation.get("units", [])
+    created = reservation.get("created", "Unknown")
+    
+    output = f"# Rack Reservation Details: {reservation['id']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {reservation['id']}\n"
+    output += f"- Rack: {rack_name} (ID: {rack_id})\n"
+    output += f"- User: {user}\n"
+    output += f"- Created: {created}\n\n"
+    
+    if units:
+        output += f"**Reserved Units:**\n"
+        units.sort()
+        output += f"- Units: {', '.join(map(str, units))}\n"
+        output += f"- Total Units Reserved: {len(units)}\n\n"
+    
+    if reservation.get("description"):
+        output += f"**Description:**\n{reservation['description']}\n\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rack_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for rack roles"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    
+    result = await netbox_client.get("dcim/rack-roles/", params)
+    roles = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not roles:
+        return [{"type": "text", "text": "No rack roles found matching the criteria."}]
+    
+    output = f"Found {count} rack roles:\n\n"
+    for role in roles:
+        color = role.get("color", "Unknown")
+        
+        output += f"• **{role['name']}** (ID: {role['id']})\n"
+        output += f"  - Slug: {role['slug']}\n"
+        output += f"  - Color: #{color}\n"
+        
+        if role.get("description"):
+            output += f"  - Description: {role['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rack_types(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for rack types"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "model" in args:
+        params["model__icontains"] = args["model"]
+    if "manufacturer" in args:
+        params["manufacturer"] = args["manufacturer"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "u_height" in args:
+        params["u_height"] = args["u_height"]
+    
+    result = await netbox_client.get("dcim/rack-types/", params)
+    rack_types = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not rack_types:
+        return [{"type": "text", "text": "No rack types found matching the criteria."}]
+    
+    output = f"Found {count} rack types:\n\n"
+    for rack_type in rack_types:
+        manufacturer = rack_type.get("manufacturer", {}).get("name", "Unknown")
+        
+        output += f"• **{rack_type['model']}** (ID: {rack_type['id']})\n"
+        output += f"  - Manufacturer: {manufacturer}\n"
+        output += f"  - Slug: {rack_type['slug']}\n"
+        output += f"  - Height: {rack_type.get('u_height', 'Unknown')}U\n"
+        output += f"  - Width: {rack_type.get('width', {}).get('label', 'Unknown')}\n"
+        output += f"  - Depth: {rack_type.get('depth_mm', 'Unknown')}mm\n"
+        
+        if rack_type.get("description"):
+            output += f"  - Description: {rack_type['description']}\n"
         
         output += "\n"
     
@@ -1650,6 +2104,100 @@ async def search_vlan_translation_policies(args: Dict[str, Any], netbox_client: 
         output += f"• **{policy['name']}** (ID: {policy['id']})\n"
         if policy.get("description"):
             output += f"  - Description: {policy['description']}\n"
+
+# New IPAM Tools
+async def search_asns(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for Autonomous System Numbers (ASNs)"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "asn" in args:
+        params["asn"] = args["asn"]
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "rir" in args:
+        params["rir"] = args["rir"]
+    
+    result = await netbox_client.get("ipam/asns/", params)
+    asns = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not asns:
+        return [{"type": "text", "text": "No ASNs found matching the criteria."}]
+    
+    output = f"Found {count} ASNs:\n\n"
+    for asn in asns:
+        rir_name = asn.get("rir", {}).get("name", "Unknown") if asn.get("rir") else "No RIR"
+        
+        output += f"• **AS{asn['asn']}** - {asn.get('name', 'Unnamed')}\n"
+        output += f"  - RIR: {rir_name}\n"
+        
+        if asn.get("description"):
+            output += f"  - Description: {asn['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_asn_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific ASN"""
+    asn_id = args.get("asn_id")
+    asn_number = args.get("asn")
+    
+    if not asn_id and not asn_number:
+        return [{"type": "text", "text": "Either asn_id or asn must be provided"}]
+    
+    if asn_number and not asn_id:
+        search_result = await netbox_client.get("ipam/asns/", {"asn": asn_number})
+        asns = search_result.get("results", [])
+        if not asns:
+            return [{"type": "text", "text": f"ASN {asn_number} not found"}]
+        asn_id = asns[0]["id"]
+    
+    asn = await netbox_client.get(f"ipam/asns/{asn_id}/")
+    rir_name = asn.get("rir", {}).get("name", "Unknown") if asn.get("rir") else "No RIR"
+    
+    output = f"# ASN Details: AS{asn['asn']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ASN: {asn['asn']}\n"
+    output += f"- Name: {asn.get('name', 'Unnamed')}\n"
+    output += f"- RIR: {rir_name}\n"
+    
+    if asn.get("description"):
+        output += f"- Description: {asn['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_asn_ranges(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for ASN ranges"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "rir" in args:
+        params["rir"] = args["rir"]
+    if "start" in args:
+        params["start"] = args["start"]
+    if "end" in args:
+        params["end"] = args["end"]
+    
+    result = await netbox_client.get("ipam/asn-ranges/", params)
+    ranges = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not ranges:
+        return [{"type": "text", "text": "No ASN ranges found matching the criteria."}]
+    
+    output = f"Found {count} ASN ranges:\n\n"
+    for asn_range in ranges:
+        rir_name = asn_range.get("rir", {}).get("name", "Unknown") if asn_range.get("rir") else "No RIR"
+        
+        output += f"• **{asn_range['name']}** (AS{asn_range['start']} - AS{asn_range['end']})\n"
+        output += f"  - RIR: {rir_name}\n"
+        output += f"  - Size: {asn_range['end'] - asn_range['start'] + 1} ASNs\n"
+        
+        if asn_range.get("description"):
+            output += f"  - Description: {asn_range['description']}\n"
+        
         output += "\n"
     
     return [{"type": "text", "text": output}]
@@ -1678,6 +2226,66 @@ async def search_vlan_translation_rules(args: Dict[str, Any], netbox_client: Net
         output += f"• **Rule {rule['id']}** - Policy: {policy_name}\n"
         output += f"  - Original VLAN: {rule.get('original_vid', 'N/A')}\n"
         output += f"  - Translated VLAN: {rule.get('translated_vid', 'N/A')}\n"
+async def get_asn_range_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific ASN range"""
+    range_id = args.get("range_id")
+    name = args.get("name")
+    
+    if not range_id and not name:
+        return [{"type": "text", "text": "Either range_id or name must be provided"}]
+    
+    if name and not range_id:
+        search_result = await netbox_client.get("ipam/asn-ranges/", {"name": name})
+        ranges = search_result.get("results", [])
+        if not ranges:
+            return [{"type": "text", "text": f"ASN range '{name}' not found"}]
+        range_id = ranges[0]["id"]
+    
+    asn_range = await netbox_client.get(f"ipam/asn-ranges/{range_id}/")
+    rir_name = asn_range.get("rir", {}).get("name", "Unknown") if asn_range.get("rir") else "No RIR"
+    
+    output = f"# ASN Range Details: {asn_range['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Name: {asn_range['name']}\n"
+    output += f"- Start ASN: {asn_range['start']}\n"
+    output += f"- End ASN: {asn_range['end']}\n"
+    output += f"- Size: {asn_range['end'] - asn_range['start'] + 1} ASNs\n"
+    output += f"- RIR: {rir_name}\n"
+    
+    if asn_range.get("description"):
+        output += f"- Description: {asn_range['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_aggregates(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for IP address aggregates"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "prefix" in args:
+        params["prefix"] = args["prefix"]
+    if "rir" in args:
+        params["rir"] = args["rir"]
+    if "family" in args:
+        params["family"] = args["family"]
+    
+    result = await netbox_client.get("ipam/aggregates/", params)
+    aggregates = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not aggregates:
+        return [{"type": "text", "text": "No aggregates found matching the criteria."}]
+    
+    output = f"Found {count} aggregates:\n\n"
+    for aggregate in aggregates:
+        rir_name = aggregate.get("rir", {}).get("name", "Unknown") if aggregate.get("rir") else "No RIR"
+        
+        output += f"• **{aggregate['prefix']}**\n"
+        output += f"  - RIR: {rir_name}\n"
+        output += f"  - Family: IPv{aggregate.get('family', 'Unknown')}\n"
+        
+        if aggregate.get("description"):
+            output += f"  - Description: {aggregate['description']}\n"
+        
         output += "\n"
     
     return [{"type": "text", "text": output}]
@@ -1713,6 +2321,74 @@ async def search_fhrp_groups(args: Dict[str, Any], netbox_client: NetBoxClient) 
         output += f"  - Authentication: {auth_type}\n"
         if group.get("description"):
             output += f"  - Description: {group['description']}\n"
+
+async def get_aggregate_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific aggregate"""
+    aggregate_id = args.get("aggregate_id")
+    prefix = args.get("prefix")
+    
+    if not aggregate_id and not prefix:
+        return [{"type": "text", "text": "Either aggregate_id or prefix must be provided"}]
+    
+    if prefix and not aggregate_id:
+        search_result = await netbox_client.get("ipam/aggregates/", {"prefix": prefix})
+        aggregates = search_result.get("results", [])
+        if not aggregates:
+            return [{"type": "text", "text": f"Aggregate '{prefix}' not found"}]
+        aggregate_id = aggregates[0]["id"]
+    
+    aggregate = await netbox_client.get(f"ipam/aggregates/{aggregate_id}/")
+    rir_name = aggregate.get("rir", {}).get("name", "Unknown") if aggregate.get("rir") else "No RIR"
+    
+    output = f"# Aggregate Details: {aggregate['prefix']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Prefix: {aggregate['prefix']}\n"
+    output += f"- RIR: {rir_name}\n"
+    output += f"- Family: IPv{aggregate.get('family', 'Unknown')}\n"
+    output += f"- Date Added: {aggregate.get('date_added', 'Unknown')}\n"
+    
+    if aggregate.get("description"):
+        output += f"- Description: {aggregate['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_ip_ranges(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for IP address ranges"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "start_address" in args:
+        params["start_address"] = args["start_address"]
+    if "end_address" in args:
+        params["end_address"] = args["end_address"]
+    if "vrf" in args:
+        params["vrf"] = args["vrf"]
+    if "role" in args:
+        params["role"] = args["role"]
+    if "status" in args:
+        params["status"] = args["status"]
+    
+    result = await netbox_client.get("ipam/ip-ranges/", params)
+    ranges = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not ranges:
+        return [{"type": "text", "text": "No IP ranges found matching the criteria."}]
+    
+    output = f"Found {count} IP ranges:\n\n"
+    for ip_range in ranges:
+        vrf_name = ip_range.get("vrf", {}).get("name", "Global") if ip_range.get("vrf") else "Global"
+        status = ip_range.get("status", {}).get("label", "Unknown")
+        role = ip_range.get("role", {}).get("name", "No role") if ip_range.get("role") else "No role"
+        
+        output += f"• **{ip_range['start_address']} - {ip_range['end_address']}**\n"
+        output += f"  - VRF: {vrf_name}\n"
+        output += f"  - Status: {status}\n"
+        output += f"  - Role: {role}\n"
+        output += f"  - Size: {ip_range.get('size', 'Unknown')} addresses\n"
+        
+        if ip_range.get("description"):
+            output += f"  - Description: {ip_range['description']}\n"
+        
         output += "\n"
     
     return [{"type": "text", "text": output}]
@@ -1745,12 +2421,109 @@ async def search_fhrp_group_assignments(args: Dict[str, Any], netbox_client: Net
         output += f"  - Group: {group_name}\n"
         output += f"  - Interface: {interface_name} ({device_name})\n"
         output += f"  - Priority: {assignment.get('priority', 'N/A')}\n"
+
+async def get_ip_range_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific IP range"""
+    range_id = args.get("range_id")
+    start_address = args.get("start_address")
+    end_address = args.get("end_address")
+    
+    if not range_id and not (start_address and end_address):
+        return [{"type": "text", "text": "Either range_id or both start_address and end_address must be provided"}]
+    
+    if start_address and end_address and not range_id:
+        search_result = await netbox_client.get("ipam/ip-ranges/", {
+            "start_address": start_address,
+            "end_address": end_address
+        })
+        ranges = search_result.get("results", [])
+        if not ranges:
+            return [{"type": "text", "text": f"IP range '{start_address} - {end_address}' not found"}]
+        range_id = ranges[0]["id"]
+    
+    ip_range = await netbox_client.get(f"ipam/ip-ranges/{range_id}/")
+    vrf_name = ip_range.get("vrf", {}).get("name", "Global") if ip_range.get("vrf") else "Global"
+    status = ip_range.get("status", {}).get("label", "Unknown")
+    role = ip_range.get("role", {}).get("name", "No role") if ip_range.get("role") else "No role"
+    
+    output = f"# IP Range Details: {ip_range['start_address']} - {ip_range['end_address']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Start Address: {ip_range['start_address']}\n"
+    output += f"- End Address: {ip_range['end_address']}\n"
+    output += f"- Size: {ip_range.get('size', 'Unknown')} addresses\n"
+    output += f"- VRF: {vrf_name}\n"
+    output += f"- Status: {status}\n"
+    output += f"- Role: {role}\n"
+    
+    if ip_range.get("description"):
+        output += f"- Description: {ip_range['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rirs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for Regional Internet Registries (RIRs)"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    
+    result = await netbox_client.get("ipam/rirs/", params)
+    rirs = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not rirs:
+        return [{"type": "text", "text": "No RIRs found matching the criteria."}]
+    
+    output = f"Found {count} RIRs:\n\n"
+    for rir in rirs:
+        output += f"• **{rir['name']}** ({rir['slug']})\n"
+        
+        if rir.get("description"):
+            output += f"  - Description: {rir['description']}\n"
+        
         output += "\n"
     
     return [{"type": "text", "text": output}]
 
 async def search_route_targets(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search for route targets"""
+async def get_rir_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific RIR"""
+    rir_id = args.get("rir_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not rir_id and not name and not slug:
+        return [{"type": "text", "text": "Either rir_id, name, or slug must be provided"}]
+    
+    if not rir_id:
+        if name:
+            search_result = await netbox_client.get("ipam/rirs/", {"name": name})
+        else:
+            search_result = await netbox_client.get("ipam/rirs/", {"slug": slug})
+        
+        rirs = search_result.get("results", [])
+        if not rirs:
+            identifier = name or slug
+            return [{"type": "text", "text": f"RIR '{identifier}' not found"}]
+        rir_id = rirs[0]["id"]
+    
+    rir = await netbox_client.get(f"ipam/rirs/{rir_id}/")
+    
+    output = f"# RIR Details: {rir['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Name: {rir['name']}\n"
+    output += f"- Slug: {rir['slug']}\n"
+    
+    if rir.get("description"):
+        output += f"- Description: {rir['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_ipam_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for IPAM roles (prefix/VLAN roles)"""
     params = {"limit": args.get("limit", 10)}
     
     if "name" in args:
@@ -1775,12 +2548,66 @@ async def search_route_targets(args: Dict[str, Any], netbox_client: NetBoxClient
         output += f"  - Tenant: {tenant}\n"
         if rt.get("description"):
             output += f"  - Description: {rt['description']}\n"
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    
+    result = await netbox_client.get("ipam/roles/", params)
+    roles = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not roles:
+        return [{"type": "text", "text": "No IPAM roles found matching the criteria."}]
+    
+    output = f"Found {count} IPAM roles:\n\n"
+    for role in roles:
+        output += f"• **{role['name']}** ({role['slug']})\n"
+        output += f"  - Weight: {role.get('weight', 'Unknown')}\n"
+        
+        if role.get("description"):
+            output += f"  - Description: {role['description']}\n"
+        
         output += "\n"
     
     return [{"type": "text", "text": output}]
 
 async def search_services(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search for services"""
+async def get_ipam_role_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific IPAM role"""
+    role_id = args.get("role_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not role_id and not name and not slug:
+        return [{"type": "text", "text": "Either role_id, name, or slug must be provided"}]
+    
+    if not role_id:
+        if name:
+            search_result = await netbox_client.get("ipam/roles/", {"name": name})
+        else:
+            search_result = await netbox_client.get("ipam/roles/", {"slug": slug})
+        
+        roles = search_result.get("results", [])
+        if not roles:
+            identifier = name or slug
+            return [{"type": "text", "text": f"IPAM role '{identifier}' not found"}]
+        role_id = roles[0]["id"]
+    
+    role = await netbox_client.get(f"ipam/roles/{role_id}/")
+    
+    output = f"# IPAM Role Details: {role['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Name: {role['name']}\n"
+    output += f"- Slug: {role['slug']}\n"
+    output += f"- Weight: {role.get('weight', 'Unknown')}\n"
+    
+    if role.get("description"):
+        output += f"- Description: {role['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_vrfs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for Virtual Routing and Forwarding instances (VRFs)"""
     params = {"limit": args.get("limit", 10)}
     
     if "name" in args:
@@ -1814,12 +2641,66 @@ async def search_services(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         output += f"  - Host: {host}\n"
         if service.get("description"):
             output += f"  - Description: {service['description']}\n"
+
+    if "rd" in args:
+        params["rd"] = args["rd"]
+    
+    result = await netbox_client.get("ipam/vrfs/", params)
+    vrfs = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not vrfs:
+        return [{"type": "text", "text": "No VRFs found matching the criteria."}]
+    
+    output = f"Found {count} VRFs:\n\n"
+    for vrf in vrfs:
+        output += f"• **{vrf['name']}**\n"
+        output += f"  - Route Distinguisher: {vrf.get('rd', 'None')}\n"
+        
+        if vrf.get("description"):
+            output += f"  - Description: {vrf['description']}\n"
+        
         output += "\n"
     
     return [{"type": "text", "text": output}]
 
 async def search_service_templates(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search for service templates"""
+async def get_vrf_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific VRF"""
+    vrf_id = args.get("vrf_id")
+    name = args.get("name")
+    rd = args.get("rd")
+    
+    if not vrf_id and not name and not rd:
+        return [{"type": "text", "text": "Either vrf_id, name, or rd must be provided"}]
+    
+    if not vrf_id:
+        if name:
+            search_result = await netbox_client.get("ipam/vrfs/", {"name": name})
+        else:
+            search_result = await netbox_client.get("ipam/vrfs/", {"rd": rd})
+        
+        vrfs = search_result.get("results", [])
+        if not vrfs:
+            identifier = name or rd
+            return [{"type": "text", "text": f"VRF '{identifier}' not found"}]
+        vrf_id = vrfs[0]["id"]
+    
+    vrf = await netbox_client.get(f"ipam/vrfs/{vrf_id}/")
+    
+    output = f"# VRF Details: {vrf['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Name: {vrf['name']}\n"
+    output += f"- Route Distinguisher: {vrf.get('rd', 'None')}\n"
+    
+    if vrf.get("description"):
+        output += f"- Description: {vrf['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_vlan_groups(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for VLAN groups"""
     params = {"limit": args.get("limit", 10)}
     
     if "name" in args:
@@ -1847,7 +2728,64 @@ async def search_service_templates(args: Dict[str, Any], netbox_client: NetBoxCl
         output += f"  - Ports: {', '.join(map(str, template.get('ports', [])))}\n"
         if template.get("description"):
             output += f"  - Description: {template['description']}\n"
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "site" in args:
+        params["site"] = args["site"]
+    
+    result = await netbox_client.get("ipam/vlan-groups/", params)
+    groups = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not groups:
+        return [{"type": "text", "text": "No VLAN groups found matching the criteria."}]
+    
+    output = f"Found {count} VLAN groups:\n\n"
+    for group in groups:
+        site = group.get("site", {}).get("name", "No site") if group.get("site") else "No site"
+        
+        output += f"• **{group['name']}** ({group['slug']})\n"
+        output += f"  - Site: {site}\n"
+        
+        if group.get("description"):
+            output += f"  - Description: {group['description']}\n"
+        
         output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_vlan_group_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific VLAN group"""
+    group_id = args.get("group_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not group_id and not name and not slug:
+        return [{"type": "text", "text": "Either group_id, name, or slug must be provided"}]
+    
+    if not group_id:
+        if name:
+            search_result = await netbox_client.get("ipam/vlan-groups/", {"name": name})
+        else:
+            search_result = await netbox_client.get("ipam/vlan-groups/", {"slug": slug})
+        
+        groups = search_result.get("results", [])
+        if not groups:
+            identifier = name or slug
+            return [{"type": "text", "text": f"VLAN group '{identifier}' not found"}]
+        group_id = groups[0]["id"]
+    
+    group = await netbox_client.get(f"ipam/vlan-groups/{group_id}/")
+    site = group.get("site", {}).get("name", "No site") if group.get("site") else "No site"
+    
+    output = f"# VLAN Group Details: {group['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- Name: {group['name']}\n"
+    output += f"- Slug: {group['slug']}\n"
+    output += f"- Site: {site}\n"
+    
+    if group.get("description"):
+        output += f"- Description: {group['description']}\n"
     
     return [{"type": "text", "text": output}]
 
