@@ -188,6 +188,80 @@ Search for equipment racks and their locations.
 - "Search for 42U racks"
 - "Show racks in the server room location"
 
+### get_rack_details
+Get comprehensive information about a specific rack.
+
+**Parameters:**
+- `rack_id` (integer): NetBox rack ID
+- `rack_name` (string): Rack name (alternative to ID)
+
+**Returns:** Detailed rack information including physical specifications, utilization, and location details.
+
+**Example queries:**
+- "Get details for rack ID 456"
+- "Show me details for rack-01"
+- "What are the specifications of the main rack?"
+
+### search_rack_reservations
+Search for rack unit reservations.
+
+**Parameters:**
+- `rack` (string, optional): Rack name
+- `user` (string, optional): User who made the reservation
+- `description` (string, optional): Reservation description (partial match)
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of rack reservations with rack name, user, reserved units, and description.
+
+**Example queries:**
+- "Find reservations for rack-01"
+- "Show reservations by john.doe"
+- "Search for maintenance reservations"
+
+### get_rack_reservation_details
+Get detailed information about a specific rack reservation.
+
+**Parameters:**
+- `reservation_id` (integer): NetBox rack reservation ID
+
+**Returns:** Comprehensive reservation details including rack, user, units, and timeline.
+
+**Example queries:**
+- "Get details for reservation ID 123"
+- "Show me reservation details for ID 456"
+
+### search_rack_roles
+Search for rack roles used in your infrastructure.
+
+**Parameters:**
+- `name` (string, optional): Rack role name (partial match)
+- `slug` (string, optional): Rack role slug
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of rack roles with name, slug, color, and description.
+
+**Example queries:**
+- "Find server rack roles"
+- "Show all rack roles"
+- "Search for network rack roles"
+
+### search_rack_types
+Search for rack types and models.
+
+**Parameters:**
+- `model` (string, optional): Rack type model (partial match)
+- `manufacturer` (string, optional): Manufacturer name
+- `slug` (string, optional): Rack type slug
+- `u_height` (integer, optional): Filter by rack height in units
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of rack types with model, manufacturer, dimensions, and specifications.
+
+**Example queries:**
+- "Find 42U rack types"
+- "Search for Dell rack models"
+- "Show rack types from APC"
+
 ## Usage Tips
 
 **General Query Patterns:**
@@ -203,3 +277,7 @@ Search for equipment racks and their locations.
 - "Find VLAN 100 and show its details"
 - "List all circuits from AT&T"
 - "Get details for site ID 42 including devices and racks"
+- "Find all 42U racks in the datacenter"
+- "Show me rack reservations for the server room"
+- "What rack types do we have from Dell?"
+- "Get details for rack-01 including utilization"
