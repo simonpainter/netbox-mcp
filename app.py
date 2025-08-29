@@ -362,6 +362,15 @@ async def handle_mcp_message(message, session_id=None):
                 }
             }
         
+        elif method == 'resources/list':
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "resources": []
+                }
+            }
+        
         elif method == 'tools/call':
             tool_name = params.get('name')
             arguments = params.get('arguments', {})
