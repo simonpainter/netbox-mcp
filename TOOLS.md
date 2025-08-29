@@ -249,6 +249,233 @@ Find available IP addresses within a specific prefix.
 - "Find available IPs in 192.168.1.0/24"
 - "Show me 5 available addresses in prefix ID 123"
 
+### search_asns
+Search for Autonomous System Numbers (ASNs).
+
+**Parameters:**
+- `asn` (integer, optional): Specific ASN number
+- `name` (string, optional): ASN name (partial match)
+- `rir` (string, optional): Regional Internet Registry
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of ASNs with number, name, and RIR information.
+
+**Example queries:**
+- "Find ASN 64512"
+- "Search for ASNs from ARIN"
+- "Show ASNs with 'Company' in the name"
+
+### get_asn_details
+Get detailed information about a specific ASN.
+
+**Parameters:**
+- `asn_id` (integer): NetBox ASN ID
+- `asn` (integer): ASN number (alternative to ID)
+
+**Returns:** Detailed ASN information including RIR and description.
+
+**Example queries:**
+- "Get details for ASN 64512"
+- "Show me details for ASN ID 123"
+
+### search_asn_ranges
+Search for ASN ranges.
+
+**Parameters:**
+- `name` (string, optional): ASN range name (partial match)
+- `rir` (string, optional): Regional Internet Registry
+- `start` (integer, optional): Range start ASN
+- `end` (integer, optional): Range end ASN
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of ASN ranges with name, start/end ASNs, and RIR information.
+
+**Example queries:**
+- "Find ASN ranges from RIPE"
+- "Search for ranges starting with ASN 64512"
+
+### get_asn_range_details
+Get detailed information about a specific ASN range.
+
+**Parameters:**
+- `range_id` (integer): NetBox ASN range ID
+- `name` (string): ASN range name (alternative to ID)
+
+**Returns:** Detailed ASN range information including size and RIR.
+
+**Example queries:**
+- "Get details for ASN range 'Private Range 1'"
+
+### search_aggregates
+Search for IP address aggregates.
+
+**Parameters:**
+- `prefix` (string, optional): Aggregate prefix (e.g., '10.0.0.0/8')
+- `rir` (string, optional): Regional Internet Registry
+- `family` (integer, optional): IP family (4 or 6)
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of aggregates with prefix, RIR, and family information.
+
+**Example queries:**
+- "Find IPv4 aggregates from ARIN"
+- "Search for 10.0.0.0/8 aggregate"
+
+### get_aggregate_details
+Get detailed information about a specific aggregate.
+
+**Parameters:**
+- `aggregate_id` (integer): NetBox aggregate ID
+- `prefix` (string): Aggregate prefix (alternative to ID)
+
+**Returns:** Detailed aggregate information including RIR and date added.
+
+**Example queries:**
+- "Get details for aggregate 10.0.0.0/8"
+
+### search_ip_ranges
+Search for IP address ranges.
+
+**Parameters:**
+- `start_address` (string, optional): Range start address
+- `end_address` (string, optional): Range end address
+- `vrf` (string, optional): VRF name
+- `role` (string, optional): IP range role
+- `status` (string, optional): IP range status
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of IP ranges with start/end addresses, VRF, status, and role information.
+
+**Example queries:**
+- "Find IP ranges in production VRF"
+- "Search for active IP ranges"
+
+### get_ip_range_details
+Get detailed information about a specific IP range.
+
+**Parameters:**
+- `range_id` (integer): NetBox IP range ID
+- `start_address` (string): Range start address (when combined with end_address)
+- `end_address` (string): Range end address (when combined with start_address)
+
+**Returns:** Detailed IP range information including size, VRF, and role.
+
+**Example queries:**
+- "Get details for IP range 192.168.1.1 to 192.168.1.100"
+
+### search_rirs
+Search for Regional Internet Registries (RIRs).
+
+**Parameters:**
+- `name` (string, optional): RIR name (partial match)
+- `slug` (string, optional): RIR slug
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of RIRs with name and slug information.
+
+**Example queries:**
+- "Find RIR ARIN"
+- "Search for all RIRs"
+
+### get_rir_details
+Get detailed information about a specific RIR.
+
+**Parameters:**
+- `rir_id` (integer): NetBox RIR ID
+- `name` (string): RIR name (alternative to ID)
+- `slug` (string): RIR slug (alternative to ID)
+
+**Returns:** Detailed RIR information including description.
+
+**Example queries:**
+- "Get details for ARIN"
+- "Show me details for RIR ID 1"
+
+### search_ipam_roles
+Search for IPAM roles (prefix/VLAN roles).
+
+**Parameters:**
+- `name` (string, optional): Role name (partial match)
+- `slug` (string, optional): Role slug
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of IPAM roles with name, slug, and weight information.
+
+**Example queries:**
+- "Find IPAM roles"
+- "Search for roles with 'DMZ' in the name"
+
+### get_ipam_role_details
+Get detailed information about a specific IPAM role.
+
+**Parameters:**
+- `role_id` (integer): NetBox IPAM role ID
+- `name` (string): Role name (alternative to ID)
+- `slug` (string): Role slug (alternative to ID)
+
+**Returns:** Detailed IPAM role information including weight and description.
+
+**Example queries:**
+- "Get details for DMZ role"
+- "Show me details for IPAM role ID 5"
+
+### search_vrfs
+Search for Virtual Routing and Forwarding instances (VRFs).
+
+**Parameters:**
+- `name` (string, optional): VRF name (partial match)
+- `rd` (string, optional): Route distinguisher
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of VRFs with name and route distinguisher information.
+
+**Example queries:**
+- "Find production VRF"
+- "Search for VRFs with RD 65000:100"
+
+### get_vrf_details
+Get detailed information about a specific VRF.
+
+**Parameters:**
+- `vrf_id` (integer): NetBox VRF ID
+- `name` (string): VRF name (alternative to ID)
+- `rd` (string): Route distinguisher (alternative to ID)
+
+**Returns:** Detailed VRF information including route distinguisher and description.
+
+**Example queries:**
+- "Get details for production VRF"
+- "Show me details for VRF with RD 65000:100"
+
+### search_vlan_groups
+Search for VLAN groups.
+
+**Parameters:**
+- `name` (string, optional): VLAN group name (partial match)
+- `slug` (string, optional): VLAN group slug
+- `site` (string, optional): Filter by site
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of VLAN groups with name, slug, and site information.
+
+**Example queries:**
+- "Find VLAN groups at datacenter site"
+- "Search for groups with 'server' in the name"
+
+### get_vlan_group_details
+Get detailed information about a specific VLAN group.
+
+**Parameters:**
+- `group_id` (integer): NetBox VLAN group ID
+- `name` (string): VLAN group name (alternative to ID)
+- `slug` (string): VLAN group slug (alternative to ID)
+
+**Returns:** Detailed VLAN group information including site and description.
+
+**Example queries:**
+- "Get details for server VLAN group"
+- "Show me details for VLAN group ID 10"
+
 ## Network Infrastructure Tools
 
 ### search_vlans
