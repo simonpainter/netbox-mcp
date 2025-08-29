@@ -248,6 +248,116 @@ Find available IP addresses within a specific prefix.
 **Example queries:**
 - "Find available IPs in 192.168.1.0/24"
 - "Show me 5 available addresses in prefix ID 123"
+### search_vlan_translation_policies
+Search for VLAN translation policies.
+
+**Parameters:**
+- `name` (string, optional): Policy name (partial match)
+- `description` (string, optional): Policy description (partial match)
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of VLAN translation policies with names and descriptions.
+
+**Example queries:**
+- "Find VLAN translation policies"
+- "Search for policies with 'prod' in the name"
+
+### search_vlan_translation_rules
+Search for VLAN translation rules.
+
+**Parameters:**
+- `policy_id` (integer, optional): Translation policy ID
+- `original_vid` (integer, optional): Original VLAN ID
+- `translated_vid` (integer, optional): Translated VLAN ID
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of VLAN translation rules with original and translated VLAN IDs.
+
+**Example queries:**
+- "Find VLAN translation rules for policy ID 5"
+- "Search for rules translating VLAN 100"
+
+### search_fhrp_groups
+Search for FHRP (First Hop Redundancy Protocol) groups.
+
+**Parameters:**
+- `name` (string, optional): Group name (partial match)
+- `protocol` (string, optional): FHRP protocol (hsrp, vrrp, glbp, carp)
+- `group_id` (integer, optional): Group ID
+- `auth_type` (string, optional): Authentication type
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of FHRP groups with protocol, group ID, and authentication information.
+
+**Example queries:**
+- "Find HSRP groups"
+- "Search for FHRP group ID 1"
+- "Show VRRP groups with authentication"
+
+### search_fhrp_group_assignments
+Search for FHRP group assignments to interfaces.
+
+**Parameters:**
+- `group_id` (integer, optional): FHRP group ID
+- `interface_id` (integer, optional): Interface ID
+- `priority` (integer, optional): Assignment priority
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of FHRP group assignments with group, interface, and priority information.
+
+**Example queries:**
+- "Find FHRP assignments for group ID 10"
+- "Search for high priority FHRP assignments"
+
+### search_route_targets
+Search for BGP route targets.
+
+**Parameters:**
+- `name` (string, optional): Route target name (partial match)
+- `description` (string, optional): Description (partial match)
+- `tenant` (string, optional): Tenant name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of route targets with names, descriptions, and tenant information.
+
+**Example queries:**
+- "Find route targets for production tenant"
+- "Search for route targets with 'vpn' in the name"
+
+### search_services
+Search for network services.
+
+**Parameters:**
+- `name` (string, optional): Service name (partial match)
+- `device_id` (integer, optional): Device ID
+- `virtual_machine_id` (integer, optional): Virtual machine ID
+- `protocol` (string, optional): Protocol (tcp, udp, sctp)
+- `ports` (string, optional): Port numbers or ranges
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of services with protocol, ports, and host information.
+
+**Example queries:**
+- "Find HTTP services"
+- "Search for services on port 443"
+- "Show TCP services on device ID 123"
+
+### search_service_templates
+Search for service templates.
+
+**Parameters:**
+- `name` (string, optional): Template name (partial match)
+- `protocol` (string, optional): Protocol (tcp, udp, sctp)
+- `ports` (string, optional): Port numbers or ranges
+- `description` (string, optional): Description (partial match)
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of service templates with protocol, ports, and description information.
+
+**Example queries:**
+- "Find web service templates"
+- "Search for UDP service templates"
+- "Show templates for port 80"
 
 ### search_asns
 Search for Autonomous System Numbers (ASNs).
