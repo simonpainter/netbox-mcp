@@ -223,6 +223,66 @@ def get_mcp_tools():
         }
     ]
 
+def get_mcp_prompts():
+    """Return MCP prompt definitions"""
+    return [
+        {
+            "name": "device-overview",
+            "description": "Get an overview of devices in NetBox",
+            "arguments": [
+                {
+                    "name": "site",
+                    "description": "Optional site name to filter devices",
+                    "required": False
+                }
+            ]
+        },
+        {
+            "name": "site-summary",
+            "description": "Get a comprehensive summary of a specific site",
+            "arguments": [
+                {
+                    "name": "site_name",
+                    "description": "Name of the site to summarize",
+                    "required": True
+                }
+            ]
+        },
+        {
+            "name": "ip-management",
+            "description": "Explore IP address management and available subnets",
+            "arguments": [
+                {
+                    "name": "prefix",
+                    "description": "Optional network prefix to focus on (e.g., '10.0.0.0/24')",
+                    "required": False
+                }
+            ]
+        },
+        {
+            "name": "device-troubleshoot",
+            "description": "Troubleshoot connectivity and interface issues for a device",
+            "arguments": [
+                {
+                    "name": "device_name",
+                    "description": "Name or partial name of the device to troubleshoot",
+                    "required": True
+                }
+            ]
+        },
+        {
+            "name": "network-infrastructure",
+            "description": "Analyze network infrastructure including VLANs, circuits, and racks",
+            "arguments": [
+                {
+                    "name": "focus_area",
+                    "description": "Area to focus on: 'vlans', 'circuits', 'racks', or 'all'",
+                    "required": False
+                }
+            ]
+        }
+    ]
+
 # MCP Streamable HTTP Protocol Implementation
 @app.route('/api/mcp', methods=['GET', 'POST', 'DELETE'])
 def mcp_endpoint():
@@ -344,7 +404,8 @@ async def handle_mcp_message(message, session_id=None):
                 "result": {
                     "protocolVersion": "2025-03-26",
                     "capabilities": {
-                        "tools": {}
+                        "tools": {},
+                        "prompts": {}
                     },
                     "serverInfo": {
                         "name": "netbox-mcp-server",
@@ -397,6 +458,53 @@ async def handle_mcp_message(message, session_id=None):
                 }
             }
         
+        elif method == 'prompts/list':
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "prompts": get_mcp_prompts()
+                }
+            }
+        
+        elif method == 'prompts/get':
+            prompt_name = params.get('name')
+            if not prompt_name:
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {
+                        "code": -32602,
+                        "message": "Missing required parameter: name"
+                    }
+                }
+            
+            # Find the requested prompt
+            prompts = get_mcp_prompts()
+            prompt = next((p for p in prompts if p['name'] == prompt_name), None)
+            
+            if not prompt:
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {
+                        "code": -32602,
+                        "message": f"Prompt not found: {prompt_name}"
+                    }
+                }
+            
+            # Generate prompt content based on the prompt type
+            prompt_content = generate_prompt_content(prompt_name, params.get('arguments', {}))
+            
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "description": prompt['description'],
+                    "messages": prompt_content
+                }
+            }
+        
         else:
             return {
                 "jsonrpc": "2.0",
@@ -417,6 +525,83 @@ async def handle_mcp_message(message, session_id=None):
                 "message": f"Internal error: {str(e)}"
             }
         }
+
+def generate_prompt_content(prompt_name: str, arguments: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Generate content for MCP prompts"""
+    
+    if prompt_name == "device-overview":
+        site_filter = arguments.get('site', '')
+        site_text = f" at site '{site_filter}'" if site_filter else ""
+        return [
+            {
+                "role": "user",
+                "content": {
+                    "type": "text",
+                    "text": f"Please provide an overview of all devices{site_text} in NetBox. Include device counts by type and role, and highlight any important status information."
+                }
+            }
+        ]
+    
+    elif prompt_name == "site-summary":
+        site_name = arguments.get('site_name', '')
+        return [
+            {
+                "role": "user", 
+                "content": {
+                    "type": "text",
+                    "text": f"Please provide a comprehensive summary of the '{site_name}' site in NetBox. Include details about devices, racks, IP allocations, and any other relevant infrastructure information."
+                }
+            }
+        ]
+    
+    elif prompt_name == "ip-management":
+        prefix = arguments.get('prefix', '')
+        prefix_text = f" for the {prefix} network" if prefix else ""
+        return [
+            {
+                "role": "user",
+                "content": {
+                    "type": "text", 
+                    "text": f"Help me explore IP address management in NetBox{prefix_text}. Show me available prefixes, IP utilization, and suggest any optimization opportunities."
+                }
+            }
+        ]
+    
+    elif prompt_name == "device-troubleshoot":
+        device_name = arguments.get('device_name', '')
+        return [
+            {
+                "role": "user",
+                "content": {
+                    "type": "text",
+                    "text": f"Help me troubleshoot connectivity and interface issues for device '{device_name}'. Check the device details, interface status, IP assignments, and identify any potential problems."
+                }
+            }
+        ]
+    
+    elif prompt_name == "network-infrastructure":
+        focus_area = arguments.get('focus_area', 'all')
+        focus_text = f"focusing on {focus_area}" if focus_area != 'all' else "covering all areas"
+        return [
+            {
+                "role": "user",
+                "content": {
+                    "type": "text",
+                    "text": f"Analyze the network infrastructure in NetBox, {focus_text}. Provide insights about VLANs, circuits, racks, and their utilization patterns."
+                }
+            }
+        ]
+    
+    else:
+        return [
+            {
+                "role": "user",
+                "content": {
+                    "type": "text",
+                    "text": f"Unknown prompt: {prompt_name}"
+                }
+            }
+        ]
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])
