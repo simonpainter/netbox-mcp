@@ -2917,8 +2917,9 @@ async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
         sites_result = await netbox_client.get("dcim/sites/", {"group": group['id'], "limit": 1})
         site_count = sites_result.get("count", 0)
         output += f"- Sites in this group: {site_count}\n"
-    except:
-        pass  # If sites endpoint doesn't support group filter, skip the count
+    except Exception as e:
+        logger.warning(f"Failed to retrieve site count for group {group['id']}: {e}")
+        # If sites endpoint doesn't support group filter, skip the count
     
     return [{"type": "text", "text": output}]
 
