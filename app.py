@@ -222,6 +222,25 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "get_rack_details",
+            "description": "Get detailed information about a specific rack",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "rack_id": {"type": "integer", "description": "NetBox rack ID"},
+                    "rack_name": {"type": "string", "description": "Rack name (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_rack_reservations",
+            "description": "Search for rack reservations",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "rack": {"type": "string", "description": "Rack name"},
+                    "user": {"type": "string", "description": "User who made the reservation"},
+                    "description": {"type": "string", "description": "Reservation description (partial match)"},
             "name": "search_device_bays",
             "description": "Search for device bays in NetBox",
             "inputSchema": {
@@ -259,6 +278,24 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "get_rack_reservation_details",
+            "description": "Get detailed information about a specific rack reservation",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "reservation_id": {"type": "integer", "description": "NetBox rack reservation ID"}
+                }
+            }
+        },
+        {
+            "name": "search_rack_roles",
+            "description": "Search for rack roles",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Rack role name (partial match)"},
+                    "slug": {"type": "string", "description": "Rack role slug"},
+
             "name": "get_device_bay_template_details",
             "description": "Get detailed information about a specific device bay template",
             "inputSchema": {
@@ -282,6 +319,18 @@ def get_mcp_tools():
             }
         },
         {
+            "name": "search_rack_types",
+            "description": "Search for rack types",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "Rack type model (partial match)"},
+                    "manufacturer": {"type": "string", "description": "Manufacturer name"},
+                    "slug": {"type": "string", "description": "Rack type slug"},
+                    "u_height": {"type": "integer", "description": "Filter by rack height in units"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
             "name": "get_device_role_details",
             "description": "Get detailed information about a specific device role",
             "inputSchema": {
@@ -730,6 +779,11 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_vlans": search_vlans,
         "search_circuits": search_circuits,
         "search_racks": search_racks,
+        "get_rack_details": get_rack_details,
+        "search_rack_reservations": search_rack_reservations,
+        "get_rack_reservation_details": get_rack_reservation_details,
+        "search_rack_roles": search_rack_roles,
+        "search_rack_types": search_rack_types
         "search_device_bays": search_device_bays,
         "get_device_bay_details": get_device_bay_details,
         "search_device_bay_templates": search_device_bay_templates,
@@ -1111,6 +1165,211 @@ async def search_racks(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         
         if rack.get("description"):
             output += f"  - Description: {rack['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_rack_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed rack information"""
+    rack_id = args.get("rack_id")
+    rack_name = args.get("rack_name")
+    
+    if not rack_id and not rack_name:
+        return [{"type": "text", "text": "Either rack_id or rack_name must be provided"}]
+    
+    if rack_name and not rack_id:
+        search_result = await netbox_client.get("dcim/racks/", {"name": rack_name})
+        racks = search_result.get("results", [])
+        if not racks:
+            return [{"type": "text", "text": f"Rack '{rack_name}' not found"}]
+        rack_id = racks[0]["id"]
+    
+    rack = await netbox_client.get(f"dcim/racks/{rack_id}/")
+    
+    site_name = rack.get("site", {}).get("name", "Unknown")
+    location = rack.get("location", {}).get("name", "No location") if rack.get("location") else "No location"
+    status = rack.get("status", {}).get("label", "Unknown")
+    role = rack.get("role", {}).get("name", "No role") if rack.get("role") else "No role"
+    rack_type = rack.get("type", {}).get("model", "No type") if rack.get("type") else "No type"
+    manufacturer = rack.get("type", {}).get("manufacturer", {}).get("name", "Unknown") if rack.get("type", {}).get("manufacturer") else "Unknown"
+    
+    output = f"# Rack Details: {rack['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {rack['id']}\n"
+    output += f"- Name: {rack['name']}\n"
+    output += f"- Status: {status}\n"
+    output += f"- Site: {site_name}\n"
+    output += f"- Location: {location}\n"
+    output += f"- Role: {role}\n\n"
+    
+    output += f"**Physical Specifications:**\n"
+    output += f"- Height: {rack.get('u_height', 'Unknown')}U\n"
+    output += f"- Type: {rack_type}\n"
+    output += f"- Manufacturer: {manufacturer}\n"
+    output += f"- Width: {rack.get('width', {}).get('label', 'Unknown') if rack.get('width') else 'Unknown'}\n"
+    output += f"- Depth: {rack.get('depth_mm', 'Unknown')}mm\n\n"
+    
+    if rack.get("description"):
+        output += f"**Description:**\n{rack['description']}\n\n"
+    
+    if rack.get("comments"):
+        output += f"**Comments:**\n{rack['comments']}\n\n"
+    
+    # Get rack utilization info
+    try:
+        elevation = await netbox_client.get(f"dcim/racks/{rack_id}/elevation/")
+        if elevation:
+            output += f"**Utilization:**\n"
+            used_units = sum(1 for unit in elevation if unit.get("device"))
+            total_units = rack.get("u_height", 0)
+            if total_units > 0:
+                utilization = (used_units / total_units) * 100
+                output += f"- Used Units: {used_units}/{total_units} ({utilization:.1f}%)\n"
+    except Exception:
+        # Elevation endpoint might not be available or accessible
+        pass
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rack_reservations(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for rack reservations"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "rack" in args:
+        params["rack"] = args["rack"]
+    if "user" in args:
+        params["user"] = args["user"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("dcim/rack-reservations/", params)
+    reservations = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not reservations:
+        return [{"type": "text", "text": "No rack reservations found matching the criteria."}]
+    
+    output = f"Found {count} rack reservations:\n\n"
+    for reservation in reservations:
+        rack_name = reservation.get("rack", {}).get("name", "Unknown")
+        user = reservation.get("user", {}).get("username", "Unknown")
+        units = reservation.get("units", [])
+        created = reservation.get("created", "Unknown")
+        
+        output += f"• **Reservation ID: {reservation['id']}**\n"
+        output += f"  - Rack: {rack_name}\n"
+        output += f"  - User: {user}\n"
+        output += f"  - Units: {', '.join(map(str, units)) if units else 'No units specified'}\n"
+        output += f"  - Created: {created[:10] if created != 'Unknown' else 'Unknown'}\n"
+        
+        if reservation.get("description"):
+            output += f"  - Description: {reservation['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_rack_reservation_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed rack reservation information"""
+    reservation_id = args.get("reservation_id")
+    
+    if not reservation_id:
+        return [{"type": "text", "text": "reservation_id must be provided"}]
+    
+    try:
+        reservation = await netbox_client.get(f"dcim/rack-reservations/{reservation_id}/")
+    except Exception as e:
+        return [{"type": "text", "text": f"Rack reservation with ID {reservation_id} not found"}]
+    
+    rack_name = reservation.get("rack", {}).get("name", "Unknown")
+    rack_id = reservation.get("rack", {}).get("id", "Unknown")
+    user = reservation.get("user", {}).get("username", "Unknown")
+    units = reservation.get("units", [])
+    created = reservation.get("created", "Unknown")
+    
+    output = f"# Rack Reservation Details: {reservation['id']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {reservation['id']}\n"
+    output += f"- Rack: {rack_name} (ID: {rack_id})\n"
+    output += f"- User: {user}\n"
+    output += f"- Created: {created}\n\n"
+    
+    if units:
+        output += f"**Reserved Units:**\n"
+        units.sort()
+        output += f"- Units: {', '.join(map(str, units))}\n"
+        output += f"- Total Units Reserved: {len(units)}\n\n"
+    
+    if reservation.get("description"):
+        output += f"**Description:**\n{reservation['description']}\n\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rack_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for rack roles"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    
+    result = await netbox_client.get("dcim/rack-roles/", params)
+    roles = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not roles:
+        return [{"type": "text", "text": "No rack roles found matching the criteria."}]
+    
+    output = f"Found {count} rack roles:\n\n"
+    for role in roles:
+        color = role.get("color", "Unknown")
+        
+        output += f"• **{role['name']}** (ID: {role['id']})\n"
+        output += f"  - Slug: {role['slug']}\n"
+        output += f"  - Color: #{color}\n"
+        
+        if role.get("description"):
+            output += f"  - Description: {role['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_rack_types(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for rack types"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "model" in args:
+        params["model__icontains"] = args["model"]
+    if "manufacturer" in args:
+        params["manufacturer"] = args["manufacturer"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "u_height" in args:
+        params["u_height"] = args["u_height"]
+    
+    result = await netbox_client.get("dcim/rack-types/", params)
+    rack_types = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not rack_types:
+        return [{"type": "text", "text": "No rack types found matching the criteria."}]
+    
+    output = f"Found {count} rack types:\n\n"
+    for rack_type in rack_types:
+        manufacturer = rack_type.get("manufacturer", {}).get("name", "Unknown")
+        
+        output += f"• **{rack_type['model']}** (ID: {rack_type['id']})\n"
+        output += f"  - Manufacturer: {manufacturer}\n"
+        output += f"  - Slug: {rack_type['slug']}\n"
+        output += f"  - Height: {rack_type.get('u_height', 'Unknown')}U\n"
+        output += f"  - Width: {rack_type.get('width', {}).get('label', 'Unknown')}\n"
+        output += f"  - Depth: {rack_type.get('depth_mm', 'Unknown')}mm\n"
+        
+        if rack_type.get("description"):
+            output += f"  - Description: {rack_type['description']}\n"
         
         output += "\n"
     
