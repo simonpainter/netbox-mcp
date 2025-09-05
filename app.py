@@ -68,6 +68,23 @@ def run_async(func):
             loop.close()
     return wrapper
 
+def check_empty_results(result: Dict[str, Any], resource_name: str) -> Optional[List[Dict[str, Any]]]:
+    """
+    Helper function to check if API results are empty and return appropriate response.
+    
+    Args:
+        result: NetBox API response containing 'results' key
+        resource_name: Human-readable name for the resource type (e.g., "virtual machines", "devices")
+    
+    Returns:
+        None if results exist (caller should continue processing)
+        List with "not found" message if results are empty
+    """
+    items = result.get("results", [])
+    if not items:
+        return [{"type": "text", "text": f"No {resource_name} found matching the criteria"}]
+    return None
+
 def get_mcp_tools():
     """Return MCP tool definitions"""
     return [
@@ -1485,11 +1502,14 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         params["status"] = args["status"]
     
     result = await netbox_client.get("dcim/devices/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "devices")
+    if empty_check:
+        return empty_check
+    
     devices = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not devices:
-        return [{"type": "text", "text": "No devices found matching the criteria."}]
     
     output = f"Found {count} devices:\n\n"
     for device in devices:
@@ -1655,11 +1675,14 @@ async def get_prefixes(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["role"] = args["role"]
     
     result = await netbox_client.get("ipam/prefixes/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "prefixes")
+    if empty_check:
+        return empty_check
+    
     prefixes = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not prefixes:
-        return [{"type": "text", "text": "No prefixes found matching the criteria."}]
     
     output = f"Found {count} prefixes:\n\n"
     for prefix in prefixes:
@@ -1725,11 +1748,14 @@ async def search_vlans(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/vlans/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "VLANs")
+    if empty_check:
+        return empty_check
+    
     vlans = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not vlans:
-        return [{"type": "text", "text": "No VLANs found matching the criteria."}]
     
     output = f"Found {count} VLANs:\n\n"
     for vlan in vlans:
@@ -1765,11 +1791,14 @@ async def search_circuits(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("circuits/circuits/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "circuits")
+    if empty_check:
+        return empty_check
+    
     circuits = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not circuits:
-        return [{"type": "text", "text": "No circuits found matching the criteria."}]
     
     output = f"Found {count} circuits:\n\n"
     for circuit in circuits:
@@ -3738,10 +3767,13 @@ async def search_virtual_machines(args: Dict[str, Any], netbox_client: NetBoxCli
         params["platform"] = args["platform"]
     
     result = await netbox_client.get("virtualization/virtual-machines/", params)
-    vms = result.get("results", [])
     
-    if not vms:
-        return [{"type": "text", "text": "No virtual machines found matching the criteria"}]
+    # Check for empty results
+    empty_check = check_empty_results(result, "virtual machines")
+    if empty_check:
+        return empty_check
+    
+    vms = result.get("results", [])
     
     output = f"# Virtual Machines ({len(vms)} found)\n\n"
     
