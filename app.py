@@ -719,6 +719,135 @@ def get_mcp_tools():
                     "slug": {"type": "string", "description": "Region slug (alternative to ID)"}
                 }
             }
+        },
+        {
+            "name": "search_tenants",
+            "description": "Search for tenants in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Tenant name (partial match)"},
+                    "slug": {"type": "string", "description": "Tenant slug"},
+                    "group": {"type": "string", "description": "Tenant group name"},
+                    "description": {"type": "string", "description": "Description (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_tenant_details",
+            "description": "Get detailed information about a specific tenant",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "tenant_id": {"type": "integer", "description": "NetBox tenant ID"},
+                    "name": {"type": "string", "description": "Tenant name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Tenant slug (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_tenant_groups",
+            "description": "Search for tenant groups in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Tenant group name (partial match)"},
+                    "slug": {"type": "string", "description": "Tenant group slug"},
+                    "parent": {"type": "string", "description": "Parent group name"},
+                    "description": {"type": "string", "description": "Description (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_tenant_group_details",
+            "description": "Get detailed information about a specific tenant group",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "group_id": {"type": "integer", "description": "NetBox tenant group ID"},
+                    "name": {"type": "string", "description": "Tenant group name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Tenant group slug (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_contacts",
+            "description": "Search for contacts in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Contact name (partial match)"},
+                    "email": {"type": "string", "description": "Email address (partial match)"},
+                    "group": {"type": "string", "description": "Contact group name"},
+                    "title": {"type": "string", "description": "Contact title (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_contact_details",
+            "description": "Get detailed information about a specific contact",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "contact_id": {"type": "integer", "description": "NetBox contact ID"},
+                    "name": {"type": "string", "description": "Contact name (alternative to ID)"},
+                    "email": {"type": "string", "description": "Email address (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_contact_groups",
+            "description": "Search for contact groups in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Contact group name (partial match)"},
+                    "slug": {"type": "string", "description": "Contact group slug"},
+                    "parent": {"type": "string", "description": "Parent group name"},
+                    "description": {"type": "string", "description": "Description (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_contact_group_details",
+            "description": "Get detailed information about a specific contact group",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "group_id": {"type": "integer", "description": "NetBox contact group ID"},
+                    "name": {"type": "string", "description": "Contact group name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Contact group slug (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_contact_roles",
+            "description": "Search for contact roles in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Contact role name (partial match)"},
+                    "slug": {"type": "string", "description": "Contact role slug"},
+                    "description": {"type": "string", "description": "Description (partial match)"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_contact_role_details",
+            "description": "Get detailed information about a specific contact role",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "role_id": {"type": "integer", "description": "NetBox contact role ID"},
+                    "name": {"type": "string", "description": "Contact role name (alternative to ID)"},
+                    "slug": {"type": "string", "description": "Contact role slug (alternative to ID)"}
+                }
+            }
         }
     ]
 
@@ -1170,7 +1299,17 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_site_groups": search_site_groups,
         "get_site_group_details": get_site_group_details,
         "search_regions": search_regions,
-        "get_region_details": get_region_details
+        "get_region_details": get_region_details,
+        "search_tenants": search_tenants,
+        "get_tenant_details": get_tenant_details,
+        "search_tenant_groups": search_tenant_groups,
+        "get_tenant_group_details": get_tenant_group_details,
+        "search_contacts": search_contacts,
+        "get_contact_details": get_contact_details,
+        "search_contact_groups": search_contact_groups,
+        "get_contact_group_details": get_contact_group_details,
+        "search_contact_roles": search_contact_roles,
+        "get_contact_role_details": get_contact_role_details
     }
     
     if tool_name not in tools:
@@ -3032,6 +3171,400 @@ async def get_region_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
         output += f"- Child regions: {children_count}\n"
     except Exception as e:
         logger.warning(f"Failed to retrieve child regions count for region {region['id']}: {e}")
+    
+    return [{"type": "text", "text": output}]
+
+# Tenancy Tools
+
+async def search_tenants(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for tenants"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "group" in args:
+        params["group"] = args["group"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("tenancy/tenants/", params)
+    tenants = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not tenants:
+        return [{"type": "text", "text": "No tenants found matching the criteria."}]
+    
+    output = f"Found {count} tenants:\n\n"
+    for tenant in tenants:
+        group_name = tenant.get("group", {}).get("name", "No group") if tenant.get("group") else "No group"
+        
+        output += f"• **{tenant['name']}** ({tenant['slug']})\n"
+        output += f"  - ID: {tenant['id']}\n"
+        output += f"  - Group: {group_name}\n"
+        
+        if tenant.get("description"):
+            output += f"  - Description: {tenant['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_tenant_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific tenant"""
+    tenant_id = args.get("tenant_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not tenant_id and not name and not slug:
+        return [{"type": "text", "text": "Either tenant_id, name, or slug must be provided"}]
+    
+    if not tenant_id:
+        if name:
+            search_result = await netbox_client.get("tenancy/tenants/", {"name": name})
+        else:
+            search_result = await netbox_client.get("tenancy/tenants/", {"slug": slug})
+        
+        tenants = search_result.get("results", [])
+        if not tenants:
+            identifier = name or slug
+            return [{"type": "text", "text": f"Tenant '{identifier}' not found"}]
+        tenant_id = tenants[0]["id"]
+    
+    tenant = await netbox_client.get(f"tenancy/tenants/{tenant_id}/")
+    group_name = tenant.get("group", {}).get("name", "No group") if tenant.get("group") else "No group"
+    
+    output = f"# Tenant Details: {tenant['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {tenant['id']}\n"
+    output += f"- Name: {tenant['name']}\n"
+    output += f"- Slug: {tenant['slug']}\n"
+    output += f"- Group: {group_name}\n"
+    
+    if tenant.get("description"):
+        output += f"- Description: {tenant['description']}\n"
+    
+    if tenant.get("comments"):
+        output += f"- Comments: {tenant['comments']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_tenant_groups(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for tenant groups"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "parent" in args:
+        params["parent"] = args["parent"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("tenancy/tenant-groups/", params)
+    groups = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not groups:
+        return [{"type": "text", "text": "No tenant groups found matching the criteria."}]
+    
+    output = f"Found {count} tenant groups:\n\n"
+    for group in groups:
+        parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
+        
+        output += f"• **{group['name']}** ({group['slug']})\n"
+        output += f"  - ID: {group['id']}\n"
+        output += f"  - Parent: {parent_name}\n"
+        
+        if group.get("description"):
+            output += f"  - Description: {group['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_tenant_group_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific tenant group"""
+    group_id = args.get("group_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not group_id and not name and not slug:
+        return [{"type": "text", "text": "Either group_id, name, or slug must be provided"}]
+    
+    if not group_id:
+        if name:
+            search_result = await netbox_client.get("tenancy/tenant-groups/", {"name": name})
+        else:
+            search_result = await netbox_client.get("tenancy/tenant-groups/", {"slug": slug})
+        
+        groups = search_result.get("results", [])
+        if not groups:
+            identifier = name or slug
+            return [{"type": "text", "text": f"Tenant group '{identifier}' not found"}]
+        group_id = groups[0]["id"]
+    
+    group = await netbox_client.get(f"tenancy/tenant-groups/{group_id}/")
+    parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
+    
+    output = f"# Tenant Group Details: {group['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {group['id']}\n"
+    output += f"- Name: {group['name']}\n"
+    output += f"- Slug: {group['slug']}\n"
+    output += f"- Parent: {parent_name}\n"
+    
+    if group.get("description"):
+        output += f"- Description: {group['description']}\n"
+    
+    # Get tenant count for this group
+    try:
+        tenants_result = await netbox_client.get("tenancy/tenants/", {"group": group['id'], "limit": 1})
+        tenant_count = tenants_result.get("count", 0)
+        output += f"- Tenants in this group: {tenant_count}\n"
+    except Exception as e:
+        logger.warning(f"Failed to retrieve tenant count for group {group['id']}: {e}")
+    
+    # Get child groups count
+    try:
+        children_result = await netbox_client.get("tenancy/tenant-groups/", {"parent": group['id'], "limit": 1})
+        children_count = children_result.get("count", 0)
+        output += f"- Child groups: {children_count}\n"
+    except Exception as e:
+        logger.warning(f"Failed to retrieve child groups count for group {group['id']}: {e}")
+    
+    return [{"type": "text", "text": output}]
+
+async def search_contacts(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for contacts"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "email" in args:
+        params["email__icontains"] = args["email"]
+    if "group" in args:
+        params["group"] = args["group"]
+    if "title" in args:
+        params["title__icontains"] = args["title"]
+    
+    result = await netbox_client.get("tenancy/contacts/", params)
+    contacts = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not contacts:
+        return [{"type": "text", "text": "No contacts found matching the criteria."}]
+    
+    output = f"Found {count} contacts:\n\n"
+    for contact in contacts:
+        group_name = contact.get("group", {}).get("name", "No group") if contact.get("group") else "No group"
+        
+        output += f"• **{contact['name']}**\n"
+        output += f"  - ID: {contact['id']}\n"
+        output += f"  - Email: {contact.get('email', 'No email')}\n"
+        output += f"  - Group: {group_name}\n"
+        
+        if contact.get("title"):
+            output += f"  - Title: {contact['title']}\n"
+        if contact.get("phone"):
+            output += f"  - Phone: {contact['phone']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_contact_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific contact"""
+    contact_id = args.get("contact_id")
+    name = args.get("name")
+    email = args.get("email")
+    
+    if not contact_id and not name and not email:
+        return [{"type": "text", "text": "Either contact_id, name, or email must be provided"}]
+    
+    if not contact_id:
+        if name:
+            search_result = await netbox_client.get("tenancy/contacts/", {"name": name})
+        else:
+            search_result = await netbox_client.get("tenancy/contacts/", {"email": email})
+        
+        contacts = search_result.get("results", [])
+        if not contacts:
+            identifier = name or email
+            return [{"type": "text", "text": f"Contact '{identifier}' not found"}]
+        contact_id = contacts[0]["id"]
+    
+    contact = await netbox_client.get(f"tenancy/contacts/{contact_id}/")
+    group_name = contact.get("group", {}).get("name", "No group") if contact.get("group") else "No group"
+    
+    output = f"# Contact Details: {contact['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {contact['id']}\n"
+    output += f"- Name: {contact['name']}\n"
+    output += f"- Email: {contact.get('email', 'No email')}\n"
+    output += f"- Group: {group_name}\n"
+    
+    if contact.get("title"):
+        output += f"- Title: {contact['title']}\n"
+    if contact.get("phone"):
+        output += f"- Phone: {contact['phone']}\n"
+    if contact.get("address"):
+        output += f"- Address: {contact['address']}\n"
+    if contact.get("comments"):
+        output += f"- Comments: {contact['comments']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_contact_groups(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for contact groups"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "parent" in args:
+        params["parent"] = args["parent"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("tenancy/contact-groups/", params)
+    groups = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not groups:
+        return [{"type": "text", "text": "No contact groups found matching the criteria."}]
+    
+    output = f"Found {count} contact groups:\n\n"
+    for group in groups:
+        parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
+        
+        output += f"• **{group['name']}** ({group['slug']})\n"
+        output += f"  - ID: {group['id']}\n"
+        output += f"  - Parent: {parent_name}\n"
+        
+        if group.get("description"):
+            output += f"  - Description: {group['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_contact_group_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific contact group"""
+    group_id = args.get("group_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not group_id and not name and not slug:
+        return [{"type": "text", "text": "Either group_id, name, or slug must be provided"}]
+    
+    if not group_id:
+        if name:
+            search_result = await netbox_client.get("tenancy/contact-groups/", {"name": name})
+        else:
+            search_result = await netbox_client.get("tenancy/contact-groups/", {"slug": slug})
+        
+        groups = search_result.get("results", [])
+        if not groups:
+            identifier = name or slug
+            return [{"type": "text", "text": f"Contact group '{identifier}' not found"}]
+        group_id = groups[0]["id"]
+    
+    group = await netbox_client.get(f"tenancy/contact-groups/{group_id}/")
+    parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
+    
+    output = f"# Contact Group Details: {group['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {group['id']}\n"
+    output += f"- Name: {group['name']}\n"
+    output += f"- Slug: {group['slug']}\n"
+    output += f"- Parent: {parent_name}\n"
+    
+    if group.get("description"):
+        output += f"- Description: {group['description']}\n"
+    
+    # Get contact count for this group
+    try:
+        contacts_result = await netbox_client.get("tenancy/contacts/", {"group": group['id'], "limit": 1})
+        contact_count = contacts_result.get("count", 0)
+        output += f"- Contacts in this group: {contact_count}\n"
+    except Exception as e:
+        logger.warning(f"Failed to retrieve contact count for group {group['id']}: {e}")
+    
+    # Get child groups count
+    try:
+        children_result = await netbox_client.get("tenancy/contact-groups/", {"parent": group['id'], "limit": 1})
+        children_count = children_result.get("count", 0)
+        output += f"- Child groups: {children_count}\n"
+    except Exception as e:
+        logger.warning(f"Failed to retrieve child groups count for group {group['id']}: {e}")
+    
+    return [{"type": "text", "text": output}]
+
+async def search_contact_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for contact roles"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("tenancy/contact-roles/", params)
+    roles = result.get("results", [])
+    count = result.get("count", 0)
+    
+    if not roles:
+        return [{"type": "text", "text": "No contact roles found matching the criteria."}]
+    
+    output = f"Found {count} contact roles:\n\n"
+    for role in roles:
+        output += f"• **{role['name']}** ({role['slug']})\n"
+        output += f"  - ID: {role['id']}\n"
+        
+        if role.get("description"):
+            output += f"  - Description: {role['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_contact_role_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific contact role"""
+    role_id = args.get("role_id")
+    name = args.get("name")
+    slug = args.get("slug")
+    
+    if not role_id and not name and not slug:
+        return [{"type": "text", "text": "Either role_id, name, or slug must be provided"}]
+    
+    if not role_id:
+        if name:
+            search_result = await netbox_client.get("tenancy/contact-roles/", {"name": name})
+        else:
+            search_result = await netbox_client.get("tenancy/contact-roles/", {"slug": slug})
+        
+        roles = search_result.get("results", [])
+        if not roles:
+            identifier = name or slug
+            return [{"type": "text", "text": f"Contact role '{identifier}' not found"}]
+        role_id = roles[0]["id"]
+    
+    role = await netbox_client.get(f"tenancy/contact-roles/{role_id}/")
+    
+    output = f"# Contact Role Details: {role['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {role['id']}\n"
+    output += f"- Name: {role['name']}\n"
+    output += f"- Slug: {role['slug']}\n"
+    
+    if role.get("description"):
+        output += f"- Description: {role['description']}\n"
     
     return [{"type": "text", "text": output}]
 
