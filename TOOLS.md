@@ -933,6 +933,185 @@ Get detailed information about a specific contact role.
 - "Get details for contact role ID 3"
 - "Show me details for the admin-role"
 
+## Virtualization Tools
+
+### search_virtual_machines
+Search for virtual machines in NetBox with flexible filtering options.
+
+**Parameters:**
+- `name` (string, optional): VM name (partial match)
+- `cluster` (string, optional): Cluster name
+- `site` (string, optional): Site name
+- `status` (string, optional): VM status
+- `role` (string, optional): VM role
+- `platform` (string, optional): Platform name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of virtual machines with ID, name, cluster, site, status, role, platform, and resource information.
+
+**Example queries:**
+- "Search for VMs with 'web' in the name"
+- "Find all VMs in the production cluster"
+- "Show VMs at the main datacenter site"
+
+### get_virtual_machine_details
+Get comprehensive information about a specific virtual machine.
+
+**Parameters:**
+- `vm_id` (integer): NetBox VM ID
+- `name` (string): VM name (alternative to ID)
+
+**Returns:** Detailed VM information including resources, cluster, platform, and configuration details.
+
+**Example queries:**
+- "Get details for VM ID 45"
+- "Show me details for web-server-01"
+
+### search_clusters
+Search for virtualization clusters in NetBox.
+
+**Parameters:**
+- `name` (string, optional): Cluster name (partial match)
+- `type` (string, optional): Cluster type
+- `group` (string, optional): Cluster group
+- `site` (string, optional): Site name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of clusters with ID, name, type, group, site, and description information.
+
+**Example queries:**
+- "Search for clusters with 'prod' in the name"
+- "Find all VMware clusters"
+- "Show clusters at the datacenter site"
+
+### get_cluster_details
+Get detailed information about a specific cluster.
+
+**Parameters:**
+- `cluster_id` (integer): NetBox cluster ID
+- `name` (string): Cluster name (alternative to ID)
+
+**Returns:** Comprehensive cluster information including type, group, site, and configuration details.
+
+**Example queries:**
+- "Get details for cluster ID 12"
+- "Show me details for the production-cluster"
+
+## Additional DCIM Tools
+
+### search_manufacturers
+Search for device manufacturers in NetBox.
+
+**Parameters:**
+- `name` (string, optional): Manufacturer name (partial match)
+- `slug` (string, optional): Manufacturer slug
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of manufacturers with ID, name, slug, and description information.
+
+**Example queries:**
+- "Search for manufacturers with 'Cisco' in the name"
+- "Find all network equipment manufacturers"
+- "Show all manufacturers"
+
+### search_platforms
+Search for device platforms in NetBox.
+
+**Parameters:**
+- `name` (string, optional): Platform name (partial match)
+- `slug` (string, optional): Platform slug
+- `manufacturer` (string, optional): Manufacturer name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of platforms with ID, name, slug, manufacturer, and description information.
+
+**Example queries:**
+- "Search for platforms with 'iOS' in the name"
+- "Find all Cisco platforms"
+- "Show all network platforms"
+
+### search_cables
+Search for cables in NetBox with various filtering options.
+
+**Parameters:**
+- `label` (string, optional): Cable label (partial match)
+- `type` (string, optional): Cable type
+- `status` (string, optional): Cable status
+- `color` (string, optional): Cable color
+- `device` (string, optional): Connected device name
+- `site` (string, optional): Site name
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of cables with ID, label, type, status, color, length, and termination information.
+
+**Example queries:**
+- "Search for cables with 'trunk' in the label"
+- "Find all fiber optic cables"
+- "Show cables connected to switch-01"
+
+### get_cable_details
+Get detailed information about a specific cable.
+
+**Parameters:**
+- `cable_id` (integer): NetBox cable ID
+
+**Returns:** Comprehensive cable information including type, status, length, color, and termination details.
+
+**Example queries:**
+- "Get details for cable ID 89"
+- "Show me details for the backbone fiber cable"
+
+## Enhanced Circuit Tools
+
+### search_providers
+Search for circuit providers in NetBox.
+
+**Parameters:**
+- `name` (string, optional): Provider name (partial match)
+- `slug` (string, optional): Provider slug
+- `asn` (integer, optional): Provider ASN
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of providers with ID, name, slug, ASN, account, and portal information.
+
+**Example queries:**
+- "Search for providers with 'Verizon' in the name"
+- "Find providers with ASN 1234"
+- "Show all circuit providers"
+
+### search_circuit_types
+Search for circuit types in NetBox.
+
+**Parameters:**
+- `name` (string, optional): Circuit type name (partial match)
+- `slug` (string, optional): Circuit type slug
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of circuit types with ID, name, slug, and description information.
+
+**Example queries:**
+- "Search for circuit types with 'MPLS' in the name"
+- "Find all fiber circuit types"
+- "Show all circuit types"
+
+## Organization Tools
+
+### search_tags
+Search for tags in NetBox for better organization and categorization.
+
+**Parameters:**
+- `name` (string, optional): Tag name (partial match)
+- `slug` (string, optional): Tag slug
+- `color` (string, optional): Tag color
+- `limit` (integer, optional): Max results (default: 10)
+
+**Returns:** List of tags with ID, name, slug, color, and description information.
+
+**Example queries:**
+- "Search for tags with 'prod' in the name"
+- "Find all red tags"
+- "Show all available tags"
+
 ## Usage Tips
 
 **General Query Patterns:**
@@ -962,3 +1141,13 @@ Get detailed information about a specific contact role.
 - "Find contacts with admin in their title"
 - "Show contacts in the IT group"
 - "Search for contact roles with 'manager' in the name"
+- "What VMs are running on the production cluster?"
+- "Show me details for web-server-01"
+- "Find all VMware clusters"
+- "Search for Cisco manufacturers"
+- "Show all fiber optic cables"
+- "Find cables connected to core-switch-01"
+- "List all circuit providers"
+- "Search for MPLS circuit types"
+- "Show me all production tags"
+- "Find red colored tags"

@@ -848,6 +848,147 @@ def get_mcp_tools():
                     "slug": {"type": "string", "description": "Contact role slug (alternative to ID)"}
                 }
             }
+        },
+        {
+            "name": "search_virtual_machines",
+            "description": "Search for virtual machines in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "VM name (partial match)"},
+                    "cluster": {"type": "string", "description": "Cluster name"},
+                    "site": {"type": "string", "description": "Site name"},
+                    "status": {"type": "string", "description": "VM status"},
+                    "role": {"type": "string", "description": "VM role"},
+                    "platform": {"type": "string", "description": "Platform name"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_virtual_machine_details",
+            "description": "Get detailed information about a specific virtual machine",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "vm_id": {"type": "integer", "description": "NetBox VM ID"},
+                    "name": {"type": "string", "description": "VM name (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_clusters",
+            "description": "Search for virtualization clusters in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Cluster name (partial match)"},
+                    "type": {"type": "string", "description": "Cluster type"},
+                    "group": {"type": "string", "description": "Cluster group"},
+                    "site": {"type": "string", "description": "Site name"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_cluster_details",
+            "description": "Get detailed information about a specific cluster",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "cluster_id": {"type": "integer", "description": "NetBox cluster ID"},
+                    "name": {"type": "string", "description": "Cluster name (alternative to ID)"}
+                }
+            }
+        },
+        {
+            "name": "search_manufacturers",
+            "description": "Search for device manufacturers in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Manufacturer name (partial match)"},
+                    "slug": {"type": "string", "description": "Manufacturer slug"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_platforms",
+            "description": "Search for device platforms in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Platform name (partial match)"},
+                    "slug": {"type": "string", "description": "Platform slug"},
+                    "manufacturer": {"type": "string", "description": "Manufacturer name"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_cables",
+            "description": "Search for cables in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "label": {"type": "string", "description": "Cable label (partial match)"},
+                    "type": {"type": "string", "description": "Cable type"},
+                    "status": {"type": "string", "description": "Cable status"},
+                    "color": {"type": "string", "description": "Cable color"},
+                    "device": {"type": "string", "description": "Connected device name"},
+                    "site": {"type": "string", "description": "Site name"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "get_cable_details",
+            "description": "Get detailed information about a specific cable",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "cable_id": {"type": "integer", "description": "NetBox cable ID"}
+                }
+            }
+        },
+        {
+            "name": "search_providers",
+            "description": "Search for circuit providers in NetBox", 
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Provider name (partial match)"},
+                    "slug": {"type": "string", "description": "Provider slug"},
+                    "asn": {"type": "integer", "description": "Provider ASN"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_circuit_types",
+            "description": "Search for circuit types in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Circuit type name (partial match)"},
+                    "slug": {"type": "string", "description": "Circuit type slug"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
+        },
+        {
+            "name": "search_tags",
+            "description": "Search for tags in NetBox",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Tag name (partial match)"},
+                    "slug": {"type": "string", "description": "Tag slug"},
+                    "color": {"type": "string", "description": "Tag color"},
+                    "limit": {"type": "integer", "description": "Max results (default: 10)", "default": 10}
+                }
+            }
         }
     ]
 
@@ -1309,7 +1450,18 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_contact_groups": search_contact_groups,
         "get_contact_group_details": get_contact_group_details,
         "search_contact_roles": search_contact_roles,
-        "get_contact_role_details": get_contact_role_details
+        "get_contact_role_details": get_contact_role_details,
+        "search_virtual_machines": search_virtual_machines,
+        "get_virtual_machine_details": get_virtual_machine_details,
+        "search_clusters": search_clusters,
+        "get_cluster_details": get_cluster_details,
+        "search_manufacturers": search_manufacturers,
+        "search_platforms": search_platforms,
+        "search_cables": search_cables,
+        "get_cable_details": get_cable_details,
+        "search_providers": search_providers,
+        "search_circuit_types": search_circuit_types,
+        "search_tags": search_tags
     }
     
     if tool_name not in tools:
@@ -3565,6 +3717,410 @@ async def get_contact_role_details(args: Dict[str, Any], netbox_client: NetBoxCl
     
     if role.get("description"):
         output += f"- Description: {role['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_virtual_machines(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for virtual machines"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "cluster" in args:
+        params["cluster"] = args["cluster"]
+    if "site" in args:
+        params["site"] = args["site"]
+    if "status" in args:
+        params["status"] = args["status"]
+    if "role" in args:
+        params["role"] = args["role"]
+    if "platform" in args:
+        params["platform"] = args["platform"]
+    
+    result = await netbox_client.get("virtualization/virtual-machines/", params)
+    vms = result.get("results", [])
+    
+    if not vms:
+        return [{"type": "text", "text": "No virtual machines found matching the criteria"}]
+    
+    output = f"# Virtual Machines ({len(vms)} found)\n\n"
+    
+    for vm in vms:
+        cluster_name = vm.get("cluster", {}).get("name", "Unknown") if vm.get("cluster") else "None"
+        site_name = vm.get("site", {}).get("name", "Unknown") if vm.get("site") else "None"
+        status = vm.get("status", {}).get("label", "Unknown")
+        role = vm.get("role", {}).get("name", "None") if vm.get("role") else "None"
+        platform = vm.get("platform", {}).get("name", "None") if vm.get("platform") else "None"
+        
+        output += f"• **{vm['name']}** (ID: {vm['id']})\n"
+        output += f"  - Cluster: {cluster_name}\n"
+        output += f"  - Site: {site_name}\n"
+        output += f"  - Status: {status}\n"
+        output += f"  - Role: {role}\n"
+        output += f"  - Platform: {platform}\n"
+        
+        if vm.get("vcpus"):
+            output += f"  - vCPUs: {vm['vcpus']}\n"
+        if vm.get("memory"):
+            output += f"  - Memory: {vm['memory']} MB\n"
+        if vm.get("disk"):
+            output += f"  - Disk: {vm['disk']} GB\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_virtual_machine_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific virtual machine"""
+    vm_id = args.get("vm_id")
+    name = args.get("name")
+    
+    if not vm_id and not name:
+        return [{"type": "text", "text": "Either vm_id or name must be provided"}]
+    
+    if not vm_id:
+        search_result = await netbox_client.get("virtualization/virtual-machines/", {"name": name})
+        vms = search_result.get("results", [])
+        if not vms:
+            return [{"type": "text", "text": f"Virtual machine '{name}' not found"}]
+        vm_id = vms[0]["id"]
+    
+    vm = await netbox_client.get(f"virtualization/virtual-machines/{vm_id}/")
+    
+    output = f"# Virtual Machine Details: {vm['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {vm['id']}\n"
+    output += f"- Name: {vm['name']}\n"
+    
+    if vm.get("cluster"):
+        output += f"- Cluster: {vm['cluster']['name']}\n"
+    if vm.get("site"):
+        output += f"- Site: {vm['site']['name']}\n"
+    if vm.get("status"):
+        output += f"- Status: {vm['status']['label']}\n"
+    if vm.get("role"):
+        output += f"- Role: {vm['role']['name']}\n"
+    if vm.get("platform"):
+        output += f"- Platform: {vm['platform']['name']}\n"
+    
+    output += f"\n**Resources:**\n"
+    if vm.get("vcpus"):
+        output += f"- vCPUs: {vm['vcpus']}\n"
+    if vm.get("memory"):
+        output += f"- Memory: {vm['memory']} MB\n"
+    if vm.get("disk"):
+        output += f"- Disk: {vm['disk']} GB\n"
+    
+    if vm.get("description"):
+        output += f"\n**Description:**\n{vm['description']}\n"
+    
+    if vm.get("comments"):
+        output += f"\n**Comments:**\n{vm['comments']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_clusters(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for virtualization clusters"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "type" in args:
+        params["type"] = args["type"]
+    if "group" in args:
+        params["group"] = args["group"]
+    if "site" in args:
+        params["site"] = args["site"]
+    
+    result = await netbox_client.get("virtualization/clusters/", params)
+    clusters = result.get("results", [])
+    
+    if not clusters:
+        return [{"type": "text", "text": "No clusters found matching the criteria"}]
+    
+    output = f"# Virtualization Clusters ({len(clusters)} found)\n\n"
+    
+    for cluster in clusters:
+        cluster_type = cluster.get("type", {}).get("name", "Unknown") if cluster.get("type") else "Unknown"
+        group_name = cluster.get("group", {}).get("name", "None") if cluster.get("group") else "None"
+        site_name = cluster.get("site", {}).get("name", "None") if cluster.get("site") else "None"
+        
+        output += f"• **{cluster['name']}** (ID: {cluster['id']})\n"
+        output += f"  - Type: {cluster_type}\n"
+        output += f"  - Group: {group_name}\n"
+        output += f"  - Site: {site_name}\n"
+        
+        if cluster.get("description"):
+            output += f"  - Description: {cluster['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_cluster_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific cluster"""
+    cluster_id = args.get("cluster_id")
+    name = args.get("name")
+    
+    if not cluster_id and not name:
+        return [{"type": "text", "text": "Either cluster_id or name must be provided"}]
+    
+    if not cluster_id:
+        search_result = await netbox_client.get("virtualization/clusters/", {"name": name})
+        clusters = search_result.get("results", [])
+        if not clusters:
+            return [{"type": "text", "text": f"Cluster '{name}' not found"}]
+        cluster_id = clusters[0]["id"]
+    
+    cluster = await netbox_client.get(f"virtualization/clusters/{cluster_id}/")
+    
+    output = f"# Cluster Details: {cluster['name']}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {cluster['id']}\n"
+    output += f"- Name: {cluster['name']}\n"
+    
+    if cluster.get("type"):
+        output += f"- Type: {cluster['type']['name']}\n"
+    if cluster.get("group"):
+        output += f"- Group: {cluster['group']['name']}\n"
+    if cluster.get("site"):
+        output += f"- Site: {cluster['site']['name']}\n"
+    
+    if cluster.get("description"):
+        output += f"\n**Description:**\n{cluster['description']}\n"
+    
+    if cluster.get("comments"):
+        output += f"\n**Comments:**\n{cluster['comments']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_manufacturers(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for device manufacturers"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    
+    result = await netbox_client.get("dcim/manufacturers/", params)
+    manufacturers = result.get("results", [])
+    
+    if not manufacturers:
+        return [{"type": "text", "text": "No manufacturers found matching the criteria"}]
+    
+    output = f"# Device Manufacturers ({len(manufacturers)} found)\n\n"
+    
+    for manufacturer in manufacturers:
+        output += f"• **{manufacturer['name']}** (ID: {manufacturer['id']})\n"
+        output += f"  - Slug: {manufacturer['slug']}\n"
+        
+        if manufacturer.get("description"):
+            output += f"  - Description: {manufacturer['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_platforms(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for device platforms"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "manufacturer" in args:
+        params["manufacturer"] = args["manufacturer"]
+    
+    result = await netbox_client.get("dcim/platforms/", params)
+    platforms = result.get("results", [])
+    
+    if not platforms:
+        return [{"type": "text", "text": "No platforms found matching the criteria"}]
+    
+    output = f"# Device Platforms ({len(platforms)} found)\n\n"
+    
+    for platform in platforms:
+        manufacturer_name = platform.get("manufacturer", {}).get("name", "None") if platform.get("manufacturer") else "None"
+        
+        output += f"• **{platform['name']}** (ID: {platform['id']})\n"
+        output += f"  - Slug: {platform['slug']}\n"
+        output += f"  - Manufacturer: {manufacturer_name}\n"
+        
+        if platform.get("description"):
+            output += f"  - Description: {platform['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_cables(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for cables"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "label" in args:
+        params["label__icontains"] = args["label"]
+    if "type" in args:
+        params["type"] = args["type"]
+    if "status" in args:
+        params["status"] = args["status"]
+    if "color" in args:
+        params["color"] = args["color"]
+    
+    result = await netbox_client.get("dcim/cables/", params)
+    cables = result.get("results", [])
+    
+    if not cables:
+        return [{"type": "text", "text": "No cables found matching the criteria"}]
+    
+    output = f"# Cables ({len(cables)} found)\n\n"
+    
+    for cable in cables:
+        label = cable.get("label", f"Cable {cable['id']}")
+        status = cable.get("status", {}).get("label", "Unknown") if cable.get("status") else "Unknown"
+        cable_type = cable.get("type", {}).get("label", "Unknown") if cable.get("type") else "Unknown"
+        color = cable.get("color", "None")
+        
+        output += f"• **{label}** (ID: {cable['id']})\n"
+        output += f"  - Type: {cable_type}\n"
+        output += f"  - Status: {status}\n"
+        output += f"  - Color: {color}\n"
+        
+        if cable.get("length"):
+            output += f"  - Length: {cable['length']} {cable.get('length_unit', {}).get('label', '')}\n"
+        
+        # Show terminations if available
+        if cable.get("a_terminations"):
+            output += f"  - A-side connections: {len(cable['a_terminations'])}\n"
+        if cable.get("z_terminations"):
+            output += f"  - Z-side connections: {len(cable['z_terminations'])}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def get_cable_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Get detailed information about a specific cable"""
+    cable_id = args.get("cable_id")
+    
+    if not cable_id:
+        return [{"type": "text", "text": "cable_id must be provided"}]
+    
+    cable = await netbox_client.get(f"dcim/cables/{cable_id}/")
+    
+    label = cable.get("label", f"Cable {cable['id']}")
+    output = f"# Cable Details: {label}\n\n"
+    output += f"**Basic Information:**\n"
+    output += f"- ID: {cable['id']}\n"
+    
+    if cable.get("label"):
+        output += f"- Label: {cable['label']}\n"
+    if cable.get("type"):
+        output += f"- Type: {cable['type']['label']}\n"
+    if cable.get("status"):
+        output += f"- Status: {cable['status']['label']}\n"
+    if cable.get("color"):
+        output += f"- Color: {cable['color']}\n"
+    if cable.get("length"):
+        length_unit = cable.get("length_unit", {}).get("label", "") if cable.get("length_unit") else ""
+        output += f"- Length: {cable['length']} {length_unit}\n"
+    
+    if cable.get("description"):
+        output += f"\n**Description:**\n{cable['description']}\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_providers(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for circuit providers"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "asn" in args:
+        params["asn"] = args["asn"]
+    
+    result = await netbox_client.get("circuits/providers/", params)
+    providers = result.get("results", [])
+    
+    if not providers:
+        return [{"type": "text", "text": "No providers found matching the criteria"}]
+    
+    output = f"# Circuit Providers ({len(providers)} found)\n\n"
+    
+    for provider in providers:
+        output += f"• **{provider['name']}** (ID: {provider['id']})\n"
+        output += f"  - Slug: {provider['slug']}\n"
+        
+        if provider.get("asn"):
+            output += f"  - ASN: {provider['asn']}\n"
+        if provider.get("account"):
+            output += f"  - Account: {provider['account']}\n"
+        if provider.get("portal_url"):
+            output += f"  - Portal URL: {provider['portal_url']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_circuit_types(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for circuit types"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    
+    result = await netbox_client.get("circuits/circuit-types/", params)
+    circuit_types = result.get("results", [])
+    
+    if not circuit_types:
+        return [{"type": "text", "text": "No circuit types found matching the criteria"}]
+    
+    output = f"# Circuit Types ({len(circuit_types)} found)\n\n"
+    
+    for circuit_type in circuit_types:
+        output += f"• **{circuit_type['name']}** (ID: {circuit_type['id']})\n"
+        output += f"  - Slug: {circuit_type['slug']}\n"
+        
+        if circuit_type.get("description"):
+            output += f"  - Description: {circuit_type['description']}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
+async def search_tags(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for tags"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+    if "color" in args:
+        params["color"] = args["color"]
+    
+    result = await netbox_client.get("extras/tags/", params)
+    tags = result.get("results", [])
+    
+    if not tags:
+        return [{"type": "text", "text": "No tags found matching the criteria"}]
+    
+    output = f"# Tags ({len(tags)} found)\n\n"
+    
+    for tag in tags:
+        output += f"• **{tag['name']}** (ID: {tag['id']})\n"
+        output += f"  - Slug: {tag['slug']}\n"
+        output += f"  - Color: {tag['color']}\n"
+        
+        if tag.get("description"):
+            output += f"  - Description: {tag['description']}\n"
+        
+        output += "\n"
     
     return [{"type": "text", "text": output}]
 
