@@ -2308,11 +2308,14 @@ async def search_device_bay_templates(args: Dict[str, Any], netbox_client: NetBo
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bay-templates/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "device bay templates")
+    if empty_check:
+        return empty_check
+    
     templates = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not templates:
-        return [{"type": "text", "text": "No device bay templates found matching the criteria."}]
     
     output = f"Found {count} device bay templates:\n\n"
     for template in templates:
@@ -2701,11 +2704,14 @@ async def search_aggregates(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["family"] = args["family"]
     
     result = await netbox_client.get("ipam/aggregates/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "aggregates")
+    if empty_check:
+        return empty_check
+    
     aggregates = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not aggregates:
-        return [{"type": "text", "text": "No aggregates found matching the criteria."}]
     
     output = f"Found {count} aggregates:\n\n"
     for aggregate in aggregates:
