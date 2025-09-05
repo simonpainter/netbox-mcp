@@ -68,6 +68,23 @@ def run_async(func):
             loop.close()
     return wrapper
 
+def check_empty_results(result: Dict[str, Any], resource_name: str) -> Optional[List[Dict[str, Any]]]:
+    """
+    Helper function to check if API results are empty and return appropriate response.
+    
+    Args:
+        result: NetBox API response containing 'results' key
+        resource_name: Human-readable name for the resource type (e.g., "virtual machines", "devices")
+    
+    Returns:
+        None if results exist (caller should continue processing)
+        List with "not found" message if results are empty
+    """
+    items = result.get("results", [])
+    if not items:
+        return [{"type": "text", "text": f"No {resource_name} found matching the criteria"}]
+    return None
+
 def get_mcp_tools():
     """Return MCP tool definitions"""
     return [
@@ -1485,11 +1502,14 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         params["status"] = args["status"]
     
     result = await netbox_client.get("dcim/devices/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "devices")
+    if empty_check:
+        return empty_check
+    
     devices = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not devices:
-        return [{"type": "text", "text": "No devices found matching the criteria."}]
     
     output = f"Found {count} devices:\n\n"
     for device in devices:
@@ -1655,11 +1675,14 @@ async def get_prefixes(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["role"] = args["role"]
     
     result = await netbox_client.get("ipam/prefixes/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "prefixes")
+    if empty_check:
+        return empty_check
+    
     prefixes = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not prefixes:
-        return [{"type": "text", "text": "No prefixes found matching the criteria."}]
     
     output = f"Found {count} prefixes:\n\n"
     for prefix in prefixes:
@@ -1725,11 +1748,14 @@ async def search_vlans(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/vlans/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "VLANs")
+    if empty_check:
+        return empty_check
+    
     vlans = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not vlans:
-        return [{"type": "text", "text": "No VLANs found matching the criteria."}]
     
     output = f"Found {count} VLANs:\n\n"
     for vlan in vlans:
@@ -1765,11 +1791,14 @@ async def search_circuits(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("circuits/circuits/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "circuits")
+    if empty_check:
+        return empty_check
+    
     circuits = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not circuits:
-        return [{"type": "text", "text": "No circuits found matching the criteria."}]
     
     output = f"Found {count} circuits:\n\n"
     for circuit in circuits:
@@ -1814,11 +1843,14 @@ async def search_racks(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("dcim/racks/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "racks")
+    if empty_check:
+        return empty_check
+    
     racks = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not racks:
-        return [{"type": "text", "text": "No racks found matching the criteria."}]
     
     output = f"Found {count} racks:\n\n"
     for rack in racks:
@@ -1914,11 +1946,14 @@ async def search_rack_reservations(args: Dict[str, Any], netbox_client: NetBoxCl
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("dcim/rack-reservations/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "rack reservations")
+    if empty_check:
+        return empty_check
+    
     reservations = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not reservations:
-        return [{"type": "text", "text": "No rack reservations found matching the criteria."}]
     
     output = f"Found {count} rack reservations:\n\n"
     for reservation in reservations:
@@ -1986,11 +2021,14 @@ async def search_rack_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["slug"] = args["slug"]
     
     result = await netbox_client.get("dcim/rack-roles/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "rack roles")
+    if empty_check:
+        return empty_check
+    
     roles = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not roles:
-        return [{"type": "text", "text": "No rack roles found matching the criteria."}]
     
     output = f"Found {count} rack roles:\n\n"
     for role in roles:
@@ -2021,11 +2059,14 @@ async def search_rack_types(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["u_height"] = args["u_height"]
     
     result = await netbox_client.get("dcim/rack-types/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "rack types")
+    if empty_check:
+        return empty_check
+    
     rack_types = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not rack_types:
-        return [{"type": "text", "text": "No rack types found matching the criteria."}]
     
     output = f"Found {count} rack types:\n\n"
     for rack_type in rack_types:
@@ -2101,11 +2142,14 @@ async def get_sites(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[D
         params["region"] = args["region"]
     
     result = await netbox_client.get("dcim/sites/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "sites")
+    if empty_check:
+        return empty_check
+    
     sites = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not sites:
-        return [{"type": "text", "text": "No sites found matching the criteria."}]
     
     output = f"Found {count} sites:\n\n"
     for site in sites:
@@ -2136,11 +2180,14 @@ async def search_ip_addresses(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/ip-addresses/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "IP addresses")
+    if empty_check:
+        return empty_check
+    
     ips = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not ips:
-        return [{"type": "text", "text": "No IP addresses found matching the criteria."}]
     
     output = f"Found {count} IP addresses:\n\n"
     for ip in ips:
@@ -2180,11 +2227,14 @@ async def search_device_bays(args: Dict[str, Any], netbox_client: NetBoxClient) 
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bays/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "device bays")
+    if empty_check:
+        return empty_check
+    
     bays = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not bays:
-        return [{"type": "text", "text": "No device bays found matching the criteria."}]
     
     output = f"Found {count} device bays:\n\n"
     for bay in bays:
@@ -2258,11 +2308,14 @@ async def search_device_bay_templates(args: Dict[str, Any], netbox_client: NetBo
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bay-templates/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "device bay templates")
+    if empty_check:
+        return empty_check
+    
     templates = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not templates:
-        return [{"type": "text", "text": "No device bay templates found matching the criteria."}]
     
     output = f"Found {count} device bay templates:\n\n"
     for template in templates:
@@ -2316,12 +2369,14 @@ async def search_device_roles(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["color"] = args["color"]
     
     result = await netbox_client.get("dcim/device-roles/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "device roles")
+    if empty_check:
+        return empty_check
+    
     roles = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not roles:
-        return [{"type": "text", "text": "No device roles found matching the criteria."}]
-    
     output = f"Found {count} device roles:\n\n"
     for role in roles:
         output += f"• **{role['name']}** (ID: {role['id']})\n"
@@ -2387,11 +2442,14 @@ async def search_device_types(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["part_number__icontains"] = args["part_number"]
     
     result = await netbox_client.get("dcim/device-types/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "device types")
+    if empty_check:
+        return empty_check
+    
     device_types = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not device_types:
-        return [{"type": "text", "text": "No device types found matching the criteria."}]
     
     output = f"Found {count} device types:\n\n"
     for device_type in device_types:
@@ -2492,11 +2550,14 @@ async def search_asns(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
         params["rir"] = args["rir"]
     
     result = await netbox_client.get("ipam/asns/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "ASNs")
+    if empty_check:
+        return empty_check
+    
     asns = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not asns:
-        return [{"type": "text", "text": "No ASNs found matching the criteria."}]
     
     output = f"Found {count} ASNs:\n\n"
     for asn in asns:
@@ -2643,11 +2704,14 @@ async def search_aggregates(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["family"] = args["family"]
     
     result = await netbox_client.get("ipam/aggregates/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "aggregates")
+    if empty_check:
+        return empty_check
+    
     aggregates = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not aggregates:
-        return [{"type": "text", "text": "No aggregates found matching the criteria."}]
     
     output = f"Found {count} aggregates:\n\n"
     for aggregate in aggregates:
@@ -2996,11 +3060,14 @@ async def search_vrfs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
         params["ports"] = args["ports"]
     
     result = await netbox_client.get("ipam/services/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "services")
+    if empty_check:
+        return empty_check
+    
     services = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not services:
-        return [{"type": "text", "text": "No services found matching the criteria."}]
     
     output = f"Found {count} services:\n\n"
     for service in services:
@@ -3342,11 +3409,14 @@ async def search_tenants(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("tenancy/tenants/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "tenants")
+    if empty_check:
+        return empty_check
+    
     tenants = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not tenants:
-        return [{"type": "text", "text": "No tenants found matching the criteria."}]
     
     output = f"Found {count} tenants:\n\n"
     for tenant in tenants:
@@ -3503,11 +3573,14 @@ async def search_contacts(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["title__icontains"] = args["title"]
     
     result = await netbox_client.get("tenancy/contacts/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "contacts")
+    if empty_check:
+        return empty_check
+    
     contacts = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not contacts:
-        return [{"type": "text", "text": "No contacts found matching the criteria."}]
     
     output = f"Found {count} contacts:\n\n"
     for contact in contacts:
@@ -3738,10 +3811,13 @@ async def search_virtual_machines(args: Dict[str, Any], netbox_client: NetBoxCli
         params["platform"] = args["platform"]
     
     result = await netbox_client.get("virtualization/virtual-machines/", params)
-    vms = result.get("results", [])
     
-    if not vms:
-        return [{"type": "text", "text": "No virtual machines found matching the criteria"}]
+    # Check for empty results
+    empty_check = check_empty_results(result, "virtual machines")
+    if empty_check:
+        return empty_check
+    
+    vms = result.get("results", [])
     
     output = f"# Virtual Machines ({len(vms)} found)\n\n"
     
@@ -3833,10 +3909,13 @@ async def search_clusters(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("virtualization/clusters/", params)
-    clusters = result.get("results", [])
     
-    if not clusters:
-        return [{"type": "text", "text": "No clusters found matching the criteria"}]
+    # Check for empty results
+    empty_check = check_empty_results(result, "clusters")
+    if empty_check:
+        return empty_check
+    
+    clusters = result.get("results", [])
     
     output = f"# Virtualization Clusters ({len(clusters)} found)\n\n"
     
@@ -3904,10 +3983,13 @@ async def search_manufacturers(args: Dict[str, Any], netbox_client: NetBoxClient
         params["slug"] = args["slug"]
     
     result = await netbox_client.get("dcim/manufacturers/", params)
-    manufacturers = result.get("results", [])
     
-    if not manufacturers:
-        return [{"type": "text", "text": "No manufacturers found matching the criteria"}]
+    # Check for empty results
+    empty_check = check_empty_results(result, "manufacturers")
+    if empty_check:
+        return empty_check
+    
+    manufacturers = result.get("results", [])
     
     output = f"# Device Manufacturers ({len(manufacturers)} found)\n\n"
     
@@ -3934,10 +4016,13 @@ async def search_platforms(args: Dict[str, Any], netbox_client: NetBoxClient) ->
         params["manufacturer"] = args["manufacturer"]
     
     result = await netbox_client.get("dcim/platforms/", params)
-    platforms = result.get("results", [])
     
-    if not platforms:
-        return [{"type": "text", "text": "No platforms found matching the criteria"}]
+    # Check for empty results
+    empty_check = check_empty_results(result, "platforms")
+    if empty_check:
+        return empty_check
+    
+    platforms = result.get("results", [])
     
     output = f"# Device Platforms ({len(platforms)} found)\n\n"
     
@@ -3969,10 +4054,13 @@ async def search_cables(args: Dict[str, Any], netbox_client: NetBoxClient) -> Li
         params["color"] = args["color"]
     
     result = await netbox_client.get("dcim/cables/", params)
-    cables = result.get("results", [])
     
-    if not cables:
-        return [{"type": "text", "text": "No cables found matching the criteria"}]
+    # Check for empty results
+    empty_check = check_empty_results(result, "cables")
+    if empty_check:
+        return empty_check
+    
+    cables = result.get("results", [])
     
     output = f"# Cables ({len(cables)} found)\n\n"
     
