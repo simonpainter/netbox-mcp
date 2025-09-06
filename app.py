@@ -3010,6 +3010,46 @@ async def search_ipam_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -
 
 async def search_services(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search for services"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "device_id" in args:
+        params["device_id"] = args["device_id"]
+    if "virtual_machine_id" in args:
+        params["virtual_machine_id"] = args["virtual_machine_id"]
+    if "protocol" in args:
+        params["protocol"] = args["protocol"]
+    if "ports" in args:
+        params["ports"] = args["ports"]
+    
+    result = await netbox_client.get("ipam/services/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "services")
+    if empty_check:
+        return empty_check
+    
+    services = result.get("results", [])
+    count = result.get("count", 0)
+    
+    output = f"Found {count} services:\n\n"
+    for service in services:
+        protocol = service.get("protocol", {}).get("label", "Unknown") if service.get("protocol") else "Unknown"
+        device_name = service.get("device", {}).get("name", "") if service.get("device") else ""
+        vm_name = service.get("virtual_machine", {}).get("name", "") if service.get("virtual_machine") else ""
+        host = device_name or vm_name or "No host"
+        
+        output += f"• **{service['name']}** (ID: {service['id']})\n"
+        output += f"  - Protocol: {protocol}\n"
+        output += f"  - Ports: {', '.join(map(str, service.get('ports', [])))}\n"
+        output += f"  - Host: {host}\n"
+        if service.get("description"):
+            output += f"  - Description: {service['description']}\n"
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
 async def get_ipam_role_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Get detailed information about a specific IPAM role"""
     role_id = args.get("role_id")
@@ -3077,6 +3117,40 @@ async def search_vrfs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
 
 async def search_service_templates(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search for service templates"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "protocol" in args:
+        params["protocol"] = args["protocol"]
+    if "ports" in args:
+        params["ports"] = args["ports"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    
+    result = await netbox_client.get("ipam/service-templates/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "service templates")
+    if empty_check:
+        return empty_check
+    
+    templates = result.get("results", [])
+    count = result.get("count", 0)
+    
+    output = f"Found {count} service templates:\n\n"
+    for template in templates:
+        protocol = template.get("protocol", {}).get("label", "Unknown") if template.get("protocol") else "Unknown"
+        
+        output += f"• **{template['name']}** (ID: {template['id']})\n"
+        output += f"  - Protocol: {protocol}\n"
+        output += f"  - Ports: {', '.join(map(str, template.get('ports', [])))}\n"
+        if template.get("description"):
+            output += f"  - Description: {template['description']}\n"
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
 async def get_vrf_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Get detailed information about a specific VRF"""
     vrf_id = args.get("vrf_id")
@@ -3122,40 +3196,20 @@ async def search_vlan_groups(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     if "name" in args:
         params["name__icontains"] = args["name"]
-    if "protocol" in args:
-        params["protocol"] = args["protocol"]
-    if "ports" in args:
-        params["ports"] = args["ports"]
-    if "description" in args:
-        params["description__icontains"] = args["description"]
-    
-    result = await netbox_client.get("ipam/service-templates/", params)
-    templates = result.get("results", [])
-    count = result.get("count", 0)
-    
-    if not templates:
-        return [{"type": "text", "text": "No service templates found matching the criteria."}]
-    
-    output = f"Found {count} service templates:\n\n"
-    for template in templates:
-        protocol = template.get("protocol", {}).get("label", "Unknown") if template.get("protocol") else "Unknown"
-        
-        output += f"• **{template['name']}** (ID: {template['id']})\n"
-        output += f"  - Protocol: {protocol}\n"
-        output += f"  - Ports: {', '.join(map(str, template.get('ports', [])))}\n"
-        if template.get("description"):
-            output += f"  - Description: {template['description']}\n"
     if "slug" in args:
         params["slug"] = args["slug"]
     if "site" in args:
         params["site"] = args["site"]
     
     result = await netbox_client.get("ipam/vlan-groups/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "VLAN groups")
+    if empty_check:
+        return empty_check
+    
     groups = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not groups:
-        return [{"type": "text", "text": "No VLAN groups found matching the criteria."}]
     
     output = f"Found {count} VLAN groups:\n\n"
     for group in groups:
