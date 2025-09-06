@@ -3050,48 +3050,18 @@ async def search_vrfs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
     
     if "name" in args:
         params["name__icontains"] = args["name"]
-    if "device_id" in args:
-        params["device_id"] = args["device_id"]
-    if "virtual_machine_id" in args:
-        params["virtual_machine_id"] = args["virtual_machine_id"]
-    if "protocol" in args:
-        params["protocol"] = args["protocol"]
-    if "ports" in args:
-        params["ports"] = args["ports"]
-    
-    result = await netbox_client.get("ipam/services/", params)
-    
-    # Check for empty results
-    empty_check = check_empty_results(result, "services")
-    if empty_check:
-        return empty_check
-    
-    services = result.get("results", [])
-    count = result.get("count", 0)
-    
-    output = f"Found {count} services:\n\n"
-    for service in services:
-        protocol = service.get("protocol", {}).get("label", "Unknown") if service.get("protocol") else "Unknown"
-        device_name = service.get("device", {}).get("name", "") if service.get("device") else ""
-        vm_name = service.get("virtual_machine", {}).get("name", "") if service.get("virtual_machine") else ""
-        host = device_name or vm_name or "No host"
-        
-        output += f"• **{service['name']}** (ID: {service['id']})\n"
-        output += f"  - Protocol: {protocol}\n"
-        output += f"  - Ports: {', '.join(map(str, service.get('ports', [])))}\n"
-        output += f"  - Host: {host}\n"
-        if service.get("description"):
-            output += f"  - Description: {service['description']}\n"
-
     if "rd" in args:
         params["rd"] = args["rd"]
     
     result = await netbox_client.get("ipam/vrfs/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "VRFs")
+    if empty_check:
+        return empty_check
+    
     vrfs = result.get("results", [])
     count = result.get("count", 0)
-    
-    if not vrfs:
-        return [{"type": "text", "text": "No VRFs found matching the criteria."}]
     
     output = f"Found {count} VRFs:\n\n"
     for vrf in vrfs:
