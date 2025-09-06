@@ -1372,7 +1372,122 @@ def generate_prompt_content(prompt_name: str, arguments: Dict[str, Any]) -> List
                 "role": "user", 
                 "content": {
                     "type": "text",
-                    "text": f"Please provide a comprehensive summary of the '{site_name}' site in NetBox. Include details about devices, racks, IP allocations, and any other relevant infrastructure information."
+                    "text": f"""Please generate a comprehensive Site Infrastructure Report for the '{site_name}' site in NetBox using the following structured format:
+
+# Site Infrastructure Report: {site_name}
+**Report Date:** [Current Date]
+**Engineer:** Network Infrastructure Assessment  
+**Site ID:** [Site Identifier from NetBox]
+
+## Executive Summary
+Provide a high-level overview (3-4 paragraphs maximum) covering:
+- Overall site health and operational status
+- Critical issues requiring immediate attention
+- Key infrastructure statistics and capacity utilization
+- Primary business functions supported by this site
+- Executive-level recommendations and next steps
+
+## Site Overview
+Use the get_site_details tool to gather basic site information and include:
+- Location details and site characteristics from NetBox
+- Primary business functions supported
+- Network architecture overview
+- Key infrastructure statistics (device count, rack count, etc.)
+
+## Physical Infrastructure Assessment
+
+### Rack and Space Utilization
+Use search_racks and get_rack_details tools to analyze:
+- Total racks and current utilization percentages
+- Available capacity for future growth
+- Rack types, heights, and power configurations
+- Physical space optimization opportunities
+
+### Hardware Inventory
+Use search_devices and get_device_details tools to provide:
+- Device count by type (switches, routers, servers, firewalls, etc.)
+- Device count by manufacturer and model
+- Age assessment and lifecycle status of critical components
+- Hardware warranty and support contract status where available
+- Performance capacity and utilization metrics
+
+## Network Infrastructure Analysis
+
+### Core Network Devices
+For each critical network device (using get_device_details and get_device_interfaces):
+- Device role, status, and configuration details
+- Interface utilization and capacity metrics
+- Performance analysis and bottleneck identification
+- Configuration compliance assessment
+- Redundancy and high availability status
+
+### Connectivity and Circuits  
+Use search_circuits tool to analyze:
+- Circuit inventory with bandwidth specifications
+- Provider performance and SLA compliance status
+- Redundancy assessment and single points of failure
+- Network connectivity topology and dependencies
+
+## IP Address Management
+
+### Subnet Utilization
+Use search_prefixes and search_ip_addresses tools to provide:
+- Detailed breakdown of IP usage by subnet/prefix
+- Current utilization percentages for each network
+- Available IP address pools and DHCP ranges
+- Growth projections and capacity planning recommendations
+- Address space optimization opportunities
+
+### VLAN and Segmentation
+Use search_vlans tool to assess:
+- VLAN inventory and naming conventions
+- Network segmentation effectiveness for security
+- VLAN utilization and optimization opportunities
+- Inter-VLAN routing and access control assessment
+
+## Risk Assessment and Recommendations
+
+### Critical Issues
+Identify and prioritize issues requiring immediate attention (24-48 hours):
+- Hardware failures or degraded components
+- Network connectivity problems or single points of failure
+- Capacity constraints approaching limits
+- Security vulnerabilities or compliance gaps
+
+### Medium Priority Items  
+Items requiring attention within 30 days:
+- Capacity planning and proactive upgrades
+- Configuration standardization opportunities
+- Performance optimization recommendations
+- Documentation and inventory updates
+
+### Long-term Strategic Recommendations
+Infrastructure modernization opportunities:
+- Technology refresh planning and roadmap
+- Scalability improvements for future growth
+- Cost optimization initiatives and ROI analysis
+- Integration with organizational standards and best practices
+
+## Capacity Planning
+Based on current utilization data:
+- Current resource utilization trends (compute, network, storage)
+- Growth projections for 6, 12, and 24-month horizons
+- Recommended infrastructure investments and timeline
+- Budget planning considerations and cost estimates
+
+## Compliance and Security
+- Network security posture assessment based on device configurations
+- Compliance with organizational standards and policies
+- Vulnerability assessment summary from device analysis
+- Recommended security improvements and hardening measures
+
+## Conclusion
+- Overall site health rating (Excellent/Good/Fair/Poor)
+- Summary of key action items with priorities and suggested timelines
+- Next assessment recommendations and ongoing monitoring needs
+- Strategic alignment with organizational infrastructure goals
+
+Please use all relevant NetBox MCP tools to gather comprehensive data for each section. Focus on actionable insights and specific recommendations based on the actual data found in NetBox."""
                 }
             }
         ]
