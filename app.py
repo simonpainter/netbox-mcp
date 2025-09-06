@@ -165,8 +165,8 @@ def get_mcp_tools():
             }
         },
         {
-            "name": "get_sites",
-            "description": "List all sites in NetBox",
+            "name": "search_sites",
+            "description": "Search for sites in NetBox",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -203,7 +203,7 @@ def get_mcp_tools():
             }
         },
         {
-            "name": "get_prefixes",
+            "name": "search_prefixes",
             "description": "Search and list IP prefixes/subnets",
             "inputSchema": {
                 "type": "object",
@@ -1447,10 +1447,10 @@ async def execute_tool(tool_name: str, args: Dict[str, Any], netbox_client: NetB
         "search_devices": search_devices,
         "get_device_details": get_device_details,
         "get_device_interfaces": get_device_interfaces,
-        "get_sites": get_sites,
+        "search_sites": search_sites,
         "get_site_details": get_site_details,
         "search_ip_addresses": search_ip_addresses,
-        "get_prefixes": get_prefixes,
+        "search_prefixes": search_prefixes,
         "get_available_ips": get_available_ips,
         "search_vlans": search_vlans,
         "search_circuits": search_circuits,
@@ -1697,7 +1697,7 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     
     return [{"type": "text", "text": output}]
 
-async def get_prefixes(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+async def search_prefixes(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search and list IP prefixes/subnets"""
     params = {"limit": args.get("limit", 10)}
     
@@ -2186,8 +2186,8 @@ async def get_device_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     return [{"type": "text", "text": output}]
 
-async def get_sites(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
-    """Get sites"""
+async def search_sites(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
+    """Search for sites"""
     params = {"limit": args.get("limit", 10)}
     
     if "name" in args:
