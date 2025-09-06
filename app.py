@@ -3128,7 +3128,13 @@ async def get_vrf_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             return [{"type": "text", "text": f"VRF '{identifier}' not found"}]
         vrf_id = vrfs[0]["id"]
     
-    vrf = await netbox_client.get(f"ipam/vrfs/{vrf_id}/")
+    try:
+        vrf = await netbox_client.get(f"ipam/vrfs/{vrf_id}/")
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 404:
+            return [{"type": "text", "text": f"VRF with ID {vrf_id} not found"}]
+        else:
+            raise
     
     output = f"# VRF Details: {vrf['name']}\n\n"
     output += f"**Basic Information:**\n"
