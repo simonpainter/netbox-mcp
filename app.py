@@ -2657,7 +2657,12 @@ async def get_asn_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             return [{"type": "text", "text": f"ASN {asn_number} not found"}]
         asn_id = asns[0]["id"]
     
-    asn = await netbox_client.get(f"ipam/asns/{asn_id}/")
+    asn = await get_resource_with_404_handling(
+        netbox_client, f"ipam/asns/{asn_id}/", "ASN", str(asn_id)
+    )
+    
+    if asn is None:
+        return [{"type": "text", "text": f"ASN with ID {asn_id} not found"}]
     rir_name = asn.get("rir", {}).get("name", "Unknown") if asn.get("rir") else "No RIR"
     
     output = f"# ASN Details: AS{asn['asn']}\n\n"
@@ -2745,7 +2750,12 @@ async def get_asn_range_details(args: Dict[str, Any], netbox_client: NetBoxClien
             return [{"type": "text", "text": f"ASN range '{name}' not found"}]
         range_id = ranges[0]["id"]
     
-    asn_range = await netbox_client.get(f"ipam/asn-ranges/{range_id}/")
+    asn_range = await get_resource_with_404_handling(
+        netbox_client, f"ipam/asn-ranges/{range_id}/", "ASN range", str(range_id)
+    )
+    
+    if asn_range is None:
+        return [{"type": "text", "text": f"ASN range with ID {range_id} not found"}]
     rir_name = asn_range.get("rir", {}).get("name", "Unknown") if asn_range.get("rir") else "No RIR"
     
     output = f"# ASN Range Details: {asn_range['name']}\n\n"
@@ -2844,7 +2854,12 @@ async def get_aggregate_details(args: Dict[str, Any], netbox_client: NetBoxClien
             return [{"type": "text", "text": f"Aggregate '{prefix}' not found"}]
         aggregate_id = aggregates[0]["id"]
     
-    aggregate = await netbox_client.get(f"ipam/aggregates/{aggregate_id}/")
+    aggregate = await get_resource_with_404_handling(
+        netbox_client, f"ipam/aggregates/{aggregate_id}/", "Aggregate", str(aggregate_id)
+    )
+    
+    if aggregate is None:
+        return [{"type": "text", "text": f"Aggregate with ID {aggregate_id} not found"}]
     rir_name = aggregate.get("rir", {}).get("name", "Unknown") if aggregate.get("rir") else "No RIR"
     
     output = f"# Aggregate Details: {aggregate['prefix']}\n\n"
@@ -2948,7 +2963,12 @@ async def get_ip_range_details(args: Dict[str, Any], netbox_client: NetBoxClient
             return [{"type": "text", "text": f"IP range '{start_address} - {end_address}' not found"}]
         range_id = ranges[0]["id"]
     
-    ip_range = await netbox_client.get(f"ipam/ip-ranges/{range_id}/")
+    ip_range = await get_resource_with_404_handling(
+        netbox_client, f"ipam/ip-ranges/{range_id}/", "IP range", str(range_id)
+    )
+    
+    if ip_range is None:
+        return [{"type": "text", "text": f"IP range with ID {range_id} not found"}]
     vrf_name = ip_range.get("vrf", {}).get("name", "Global") if ip_range.get("vrf") else "Global"
     status = ip_range.get("status", {}).get("label", "Unknown")
     role = ip_range.get("role", {}).get("name", "No role") if ip_range.get("role") else "No role"
@@ -3052,7 +3072,12 @@ async def get_rir_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             return [{"type": "text", "text": f"RIR '{identifier}' not found"}]
         rir_id = rirs[0]["id"]
     
-    rir = await netbox_client.get(f"ipam/rirs/{rir_id}/")
+    rir = await get_resource_with_404_handling(
+        netbox_client, f"ipam/rirs/{rir_id}/", "RIR", str(rir_id)
+    )
+    
+    if rir is None:
+        return [{"type": "text", "text": f"RIR with ID {rir_id} not found"}]
     
     output = f"# RIR Details: {rir['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3175,7 +3200,12 @@ async def get_ipam_role_details(args: Dict[str, Any], netbox_client: NetBoxClien
             return [{"type": "text", "text": f"IPAM role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await netbox_client.get(f"ipam/roles/{role_id}/")
+    role = await get_resource_with_404_handling(
+        netbox_client, f"ipam/roles/{role_id}/", "IPAM role", str(role_id)
+    )
+    
+    if role is None:
+        return [{"type": "text", "text": f"IPAM role with ID {role_id} not found"}]
     
     output = f"# IPAM Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3276,13 +3306,12 @@ async def get_vrf_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             return [{"type": "text", "text": f"VRF '{identifier}' not found"}]
         vrf_id = vrfs[0]["id"]
     
-    try:
-        vrf = await netbox_client.get(f"ipam/vrfs/{vrf_id}/")
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            return [{"type": "text", "text": f"VRF with ID {vrf_id} not found"}]
-        else:
-            raise
+    vrf = await get_resource_with_404_handling(
+        netbox_client, f"ipam/vrfs/{vrf_id}/", "VRF", str(vrf_id)
+    )
+    
+    if vrf is None:
+        return [{"type": "text", "text": f"VRF with ID {vrf_id} not found"}]
     
     output = f"# VRF Details: {vrf['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3350,7 +3379,12 @@ async def get_vlan_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             return [{"type": "text", "text": f"VLAN group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"ipam/vlan-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"ipam/vlan-groups/{group_id}/", "VLAN group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"VLAN group with ID {group_id} not found"}]
     site = group.get("site", {}).get("name", "No site") if group.get("site") else "No site"
     
     output = f"# VLAN Group Details: {group['name']}\n\n"
@@ -3418,7 +3452,12 @@ async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             return [{"type": "text", "text": f"Site group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"dcim/site-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"dcim/site-groups/{group_id}/", "Site group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"Site group with ID {group_id} not found"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Site Group Details: {group['name']}\n\n"
@@ -3496,7 +3535,12 @@ async def get_region_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             return [{"type": "text", "text": f"Region '{identifier}' not found"}]
         region_id = regions[0]["id"]
     
-    region = await netbox_client.get(f"dcim/regions/{region_id}/")
+    region = await get_resource_with_404_handling(
+        netbox_client, f"dcim/regions/{region_id}/", "Region", str(region_id)
+    )
+    
+    if region is None:
+        return [{"type": "text", "text": f"Region with ID {region_id} not found"}]
     parent_name = region.get("parent", {}).get("name", "No parent") if region.get("parent") else "No parent"
     
     output = f"# Region Details: {region['name']}\n\n"
@@ -3588,7 +3632,12 @@ async def get_tenant_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             return [{"type": "text", "text": f"Tenant '{identifier}' not found"}]
         tenant_id = tenants[0]["id"]
     
-    tenant = await netbox_client.get(f"tenancy/tenants/{tenant_id}/")
+    tenant = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/tenants/{tenant_id}/", "Tenant", str(tenant_id)
+    )
+    
+    if tenant is None:
+        return [{"type": "text", "text": f"Tenant with ID {tenant_id} not found"}]
     group_name = tenant.get("group", {}).get("name", "No group") if tenant.get("group") else "No group"
     
     output = f"# Tenant Details: {tenant['name']}\n\n"
@@ -3662,7 +3711,12 @@ async def get_tenant_group_details(args: Dict[str, Any], netbox_client: NetBoxCl
             return [{"type": "text", "text": f"Tenant group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"tenancy/tenant-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/tenant-groups/{group_id}/", "Tenant group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"Tenant group with ID {group_id} not found"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Tenant Group Details: {group['name']}\n\n"
@@ -3755,7 +3809,12 @@ async def get_contact_details(args: Dict[str, Any], netbox_client: NetBoxClient)
             return [{"type": "text", "text": f"Contact '{identifier}' not found"}]
         contact_id = contacts[0]["id"]
     
-    contact = await netbox_client.get(f"tenancy/contacts/{contact_id}/")
+    contact = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/contacts/{contact_id}/", "Contact", str(contact_id)
+    )
+    
+    if contact is None:
+        return [{"type": "text", "text": f"Contact with ID {contact_id} not found"}]
     group_name = contact.get("group", {}).get("name", "No group") if contact.get("group") else "No group"
     
     output = f"# Contact Details: {contact['name']}\n\n"
@@ -3832,7 +3891,12 @@ async def get_contact_group_details(args: Dict[str, Any], netbox_client: NetBoxC
             return [{"type": "text", "text": f"Contact group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"tenancy/contact-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/contact-groups/{group_id}/", "Contact group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"Contact group with ID {group_id} not found"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Contact Group Details: {group['name']}\n\n"
@@ -3914,7 +3978,12 @@ async def get_contact_role_details(args: Dict[str, Any], netbox_client: NetBoxCl
             return [{"type": "text", "text": f"Contact role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await netbox_client.get(f"tenancy/contact-roles/{role_id}/")
+    role = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/contact-roles/{role_id}/", "Contact role", str(role_id)
+    )
+    
+    if role is None:
+        return [{"type": "text", "text": f"Contact role with ID {role_id} not found"}]
     
     output = f"# Contact Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3995,7 +4064,12 @@ async def get_virtual_machine_details(args: Dict[str, Any], netbox_client: NetBo
             return [{"type": "text", "text": f"Virtual machine '{name}' not found"}]
         vm_id = vms[0]["id"]
     
-    vm = await netbox_client.get(f"virtualization/virtual-machines/{vm_id}/")
+    vm = await get_resource_with_404_handling(
+        netbox_client, f"virtualization/virtual-machines/{vm_id}/", "Virtual machine", str(vm_id)
+    )
+    
+    if vm is None:
+        return [{"type": "text", "text": f"Virtual machine with ID {vm_id} not found"}]
     
     output = f"# Virtual Machine Details: {vm['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -4085,7 +4159,12 @@ async def get_cluster_details(args: Dict[str, Any], netbox_client: NetBoxClient)
             return [{"type": "text", "text": f"Cluster '{name}' not found"}]
         cluster_id = clusters[0]["id"]
     
-    cluster = await netbox_client.get(f"virtualization/clusters/{cluster_id}/")
+    cluster = await get_resource_with_404_handling(
+        netbox_client, f"virtualization/clusters/{cluster_id}/", "Cluster", str(cluster_id)
+    )
+    
+    if cluster is None:
+        return [{"type": "text", "text": f"Cluster with ID {cluster_id} not found"}]
     
     output = f"# Cluster Details: {cluster['name']}\n\n"
     output += f"**Basic Information:**\n"
