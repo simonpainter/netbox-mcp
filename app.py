@@ -53,7 +53,12 @@ class NetBoxClient:
                 response = await client.get(url, headers=self.headers, params=params)
                 response.raise_for_status()
                 return response.json()
-            except httpx.HTTPError as e:
+            except httpx.HTTPStatusError as e:
+                # Re-raise HTTPStatusError so that 404 handling can work properly
+                logger.error(f"NetBox API HTTP error: {e}")
+                raise
+            except Exception as e:
+                # Handle all other errors (connection, timeout, etc.)
                 logger.error(f"NetBox API error: {e}")
                 raise Exception(f"NetBox API error: {e}")
 
