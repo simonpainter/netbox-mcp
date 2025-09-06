@@ -18,7 +18,7 @@ Search for IP addresses with various filtering options.
 - "Find IP addresses in 192.168.1.0 network"
 - "Search for active IPs in production VRF"
 
-## get_prefixes
+## search_prefixes
 
 Search and list IP prefixes/subnets with advanced filtering.
 

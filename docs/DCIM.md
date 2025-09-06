@@ -195,9 +195,9 @@ Get detailed information about a specific device type.
 - "Get details for device type ID 987"
 - "Show me details for the 'EX4300-48T' model"
 
-## get_sites
+## search_sites
 
-List and search sites in your NetBox instance.
+Search for sites in NetBox with flexible filtering options.
 
 **Parameters:**
 
