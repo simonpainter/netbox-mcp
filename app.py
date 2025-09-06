@@ -3146,29 +3146,6 @@ async def search_vlan_groups(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     if "name" in args:
         params["name__icontains"] = args["name"]
-    if "protocol" in args:
-        params["protocol"] = args["protocol"]
-    if "ports" in args:
-        params["ports"] = args["ports"]
-    if "description" in args:
-        params["description__icontains"] = args["description"]
-    
-    result = await netbox_client.get("ipam/service-templates/", params)
-    templates = result.get("results", [])
-    count = result.get("count", 0)
-    
-    if not templates:
-        return [{"type": "text", "text": "No service templates found matching the criteria."}]
-    
-    output = f"Found {count} service templates:\n\n"
-    for template in templates:
-        protocol = template.get("protocol", {}).get("label", "Unknown") if template.get("protocol") else "Unknown"
-        
-        output += f"• **{template['name']}** (ID: {template['id']})\n"
-        output += f"  - Protocol: {protocol}\n"
-        output += f"  - Ports: {', '.join(map(str, template.get('ports', [])))}\n"
-        if template.get("description"):
-            output += f"  - Description: {template['description']}\n"
     if "slug" in args:
         params["slug"] = args["slug"]
     if "site" in args:
