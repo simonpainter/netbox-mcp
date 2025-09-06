@@ -3452,7 +3452,12 @@ async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             return [{"type": "text", "text": f"Site group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"dcim/site-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"dcim/site-groups/{group_id}/", "Site group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"Site group with ID {group_id} not found"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Site Group Details: {group['name']}\n\n"
@@ -3530,7 +3535,12 @@ async def get_region_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             return [{"type": "text", "text": f"Region '{identifier}' not found"}]
         region_id = regions[0]["id"]
     
-    region = await netbox_client.get(f"dcim/regions/{region_id}/")
+    region = await get_resource_with_404_handling(
+        netbox_client, f"dcim/regions/{region_id}/", "Region", str(region_id)
+    )
+    
+    if region is None:
+        return [{"type": "text", "text": f"Region with ID {region_id} not found"}]
     parent_name = region.get("parent", {}).get("name", "No parent") if region.get("parent") else "No parent"
     
     output = f"# Region Details: {region['name']}\n\n"
@@ -3622,7 +3632,12 @@ async def get_tenant_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             return [{"type": "text", "text": f"Tenant '{identifier}' not found"}]
         tenant_id = tenants[0]["id"]
     
-    tenant = await netbox_client.get(f"tenancy/tenants/{tenant_id}/")
+    tenant = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/tenants/{tenant_id}/", "Tenant", str(tenant_id)
+    )
+    
+    if tenant is None:
+        return [{"type": "text", "text": f"Tenant with ID {tenant_id} not found"}]
     group_name = tenant.get("group", {}).get("name", "No group") if tenant.get("group") else "No group"
     
     output = f"# Tenant Details: {tenant['name']}\n\n"
@@ -3696,7 +3711,12 @@ async def get_tenant_group_details(args: Dict[str, Any], netbox_client: NetBoxCl
             return [{"type": "text", "text": f"Tenant group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"tenancy/tenant-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/tenant-groups/{group_id}/", "Tenant group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"Tenant group with ID {group_id} not found"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Tenant Group Details: {group['name']}\n\n"
@@ -3789,7 +3809,12 @@ async def get_contact_details(args: Dict[str, Any], netbox_client: NetBoxClient)
             return [{"type": "text", "text": f"Contact '{identifier}' not found"}]
         contact_id = contacts[0]["id"]
     
-    contact = await netbox_client.get(f"tenancy/contacts/{contact_id}/")
+    contact = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/contacts/{contact_id}/", "Contact", str(contact_id)
+    )
+    
+    if contact is None:
+        return [{"type": "text", "text": f"Contact with ID {contact_id} not found"}]
     group_name = contact.get("group", {}).get("name", "No group") if contact.get("group") else "No group"
     
     output = f"# Contact Details: {contact['name']}\n\n"
@@ -3866,7 +3891,12 @@ async def get_contact_group_details(args: Dict[str, Any], netbox_client: NetBoxC
             return [{"type": "text", "text": f"Contact group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await netbox_client.get(f"tenancy/contact-groups/{group_id}/")
+    group = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/contact-groups/{group_id}/", "Contact group", str(group_id)
+    )
+    
+    if group is None:
+        return [{"type": "text", "text": f"Contact group with ID {group_id} not found"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Contact Group Details: {group['name']}\n\n"
@@ -3948,7 +3978,12 @@ async def get_contact_role_details(args: Dict[str, Any], netbox_client: NetBoxCl
             return [{"type": "text", "text": f"Contact role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await netbox_client.get(f"tenancy/contact-roles/{role_id}/")
+    role = await get_resource_with_404_handling(
+        netbox_client, f"tenancy/contact-roles/{role_id}/", "Contact role", str(role_id)
+    )
+    
+    if role is None:
+        return [{"type": "text", "text": f"Contact role with ID {role_id} not found"}]
     
     output = f"# Contact Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -4029,7 +4064,12 @@ async def get_virtual_machine_details(args: Dict[str, Any], netbox_client: NetBo
             return [{"type": "text", "text": f"Virtual machine '{name}' not found"}]
         vm_id = vms[0]["id"]
     
-    vm = await netbox_client.get(f"virtualization/virtual-machines/{vm_id}/")
+    vm = await get_resource_with_404_handling(
+        netbox_client, f"virtualization/virtual-machines/{vm_id}/", "Virtual machine", str(vm_id)
+    )
+    
+    if vm is None:
+        return [{"type": "text", "text": f"Virtual machine with ID {vm_id} not found"}]
     
     output = f"# Virtual Machine Details: {vm['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -4119,7 +4159,12 @@ async def get_cluster_details(args: Dict[str, Any], netbox_client: NetBoxClient)
             return [{"type": "text", "text": f"Cluster '{name}' not found"}]
         cluster_id = clusters[0]["id"]
     
-    cluster = await netbox_client.get(f"virtualization/clusters/{cluster_id}/")
+    cluster = await get_resource_with_404_handling(
+        netbox_client, f"virtualization/clusters/{cluster_id}/", "Cluster", str(cluster_id)
+    )
+    
+    if cluster is None:
+        return [{"type": "text", "text": f"Cluster with ID {cluster_id} not found"}]
     
     output = f"# Cluster Details: {cluster['name']}\n\n"
     output += f"**Basic Information:**\n"
