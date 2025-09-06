@@ -2927,6 +2927,41 @@ async def search_rirs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
 
 async def search_route_targets(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Search for route targets"""
+    params = {"limit": args.get("limit", 10)}
+    
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "description" in args:
+        params["description__icontains"] = args["description"]
+    if "tenant" in args:
+        params["tenant"] = args["tenant"]
+    
+    result = await netbox_client.get("ipam/route-targets/", params)
+    
+    # Check for empty results
+    empty_check = check_empty_results(result, "route targets")
+    if empty_check:
+        return empty_check
+    
+    route_targets = result.get("results", [])
+    count = result.get("count", 0)
+    
+    output = f"Found {count} route targets:\n\n"
+    for rt in route_targets:
+        output += f"• **{rt['name']}**\n"
+        
+        if rt.get("description"):
+            output += f"  - Description: {rt['description']}\n"
+        
+        # Show tenant if available
+        if rt.get("tenant"):
+            tenant_name = rt["tenant"].get("name", "Unknown") if isinstance(rt["tenant"], dict) else rt["tenant"]
+            output += f"  - Tenant: {tenant_name}\n"
+        
+        output += "\n"
+    
+    return [{"type": "text", "text": output}]
+
 async def get_rir_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> List[Dict[str, Any]]:
     """Get detailed information about a specific RIR"""
     rir_id = args.get("rir_id")
