@@ -122,6 +122,36 @@ async def get_resource_with_404_handling(
         # Re-raise other exceptions (connection errors, etc.)
         raise
 
+async def resolve_site_to_id(site_param: str, netbox_client: NetBoxClient) -> Optional[int]:
+    """
+    Helper function to resolve a site parameter to a site ID.
+    
+    Args:
+        site_param: Site name or ID (as string)
+        netbox_client: NetBox API client instance
+    
+    Returns:
+        Site ID if found, None if not found
+        
+    Raises:
+        Exception: For API errors
+    """
+    # If the parameter is already numeric, treat it as an ID
+    try:
+        site_id = int(site_param)
+        return site_id
+    except ValueError:
+        # Not numeric, treat as site name - search for it
+        try:
+            search_result = await netbox_client.get("dcim/sites/", {"name": site_param})
+            sites = search_result.get("results", [])
+            if sites:
+                return sites[0]["id"]
+            return None
+        except Exception:
+            # Re-raise any API errors
+            raise
+
 def get_mcp_tools():
     """Return MCP tool definitions"""
     return [
@@ -1645,7 +1675,11 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
     if "name" in args:
         params["name__icontains"] = args["name"]
     if "site" in args:
-        params["site"] = args["site"]
+        # Resolve site name to site ID for proper filtering
+        site_id = await resolve_site_to_id(args["site"], netbox_client)
+        if site_id is None:
+            return [{"type": "text", "text": f"Site '{args['site']}' not found"}]
+        params["site"] = site_id
     if "device_type" in args:
         params["device_type"] = args["device_type"]
     if "role" in args:
@@ -1653,7 +1687,14 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
     if "status" in args:
         params["status"] = args["status"]
     
-    result = await netbox_client.get("dcim/devices/", params)
+    try:
+        result = await netbox_client.get("dcim/devices/", params)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 400:
+            return [{"type": "text", "text": f"Bad request to NetBox API: {e.response.text}. Please check your filter parameters."}]
+        else:
+            # Re-raise other HTTP errors
+            raise
     
     # Check for empty results
     empty_check = check_empty_results(result, "devices")
