@@ -38,32 +38,45 @@ Get an overview of devices in NetBox with optional site filtering.
 
 ### site-summary
 
-Get a comprehensive summary of a specific site in your NetBox instance.
+Generate a comprehensive infrastructure report for a specific site in your NetBox instance.
 
-**Description:** Provides detailed information about a specific site including devices, racks, IP allocations, and other relevant infrastructure information.
+**Description:** Creates a detailed, professional infrastructure report with executive summary, technical analysis, risk assessment, and strategic recommendations. Uses multiple NetBox tools to gather comprehensive data across all infrastructure domains.
 
 **Arguments:**
 
-- `site_name` (string, required): Name of the site to summarize
+- `site_name` (string, required): Name of the site to analyze and report on
 
-**Generated Query:** "Please provide a comprehensive summary of the 'SITE_NAME' site in NetBox. Include details about devices, racks, IP allocations, and any other relevant infrastructure information."
+**Generated Query:** A comprehensive structured prompt that guides Claude to create a professional site infrastructure report including:
+
+- **Executive Summary** - High-level overview with critical issues and recommendations
+- **Site Overview** - Location details, business functions, and architecture overview  
+- **Physical Infrastructure Assessment** - Rack utilization, hardware inventory, lifecycle analysis
+- **Network Infrastructure Analysis** - Core devices, connectivity, circuits, and performance
+- **IP Address Management** - Subnet utilization, VLAN segmentation, capacity planning
+- **Risk Assessment** - Critical issues, medium priority items, strategic recommendations
+- **Capacity Planning** - Growth projections, investment recommendations, budget planning
+- **Compliance and Security** - Security posture, compliance gaps, vulnerability assessment
+- **Conclusion** - Health rating, action items, next steps
 
 **Usage Examples:**
 
 - "Use the site-summary prompt for headquarters"
-- "Give me a site summary for the Chicago datacenter"
-- "Summarize the branch-office-1 site"
+- "Generate an infrastructure report for the Chicago datacenter"
+- "Create a comprehensive site analysis for branch-office-1"
+- "I need a detailed infrastructure assessment for the London site"
 
 **What You'll Get:**
 
-- Site overview and basic information
-- Device inventory at the site
-- Rack utilization and layout
-- IP address allocations and prefixes
-- VLAN assignments
-- Circuit terminations
-- Power and space utilization
-- Any issues or optimization opportunities
+- **Professional infrastructure report** with executive and technical sections
+- **Comprehensive data analysis** using multiple NetBox tools automatically
+- **Risk assessment and prioritization** of infrastructure issues
+- **Capacity planning insights** with growth projections and recommendations
+- **Strategic recommendations** for infrastructure modernization and optimization
+- **Security and compliance assessment** based on current configurations
+- **Actionable next steps** with priorities and timelines
+- **Executive summary** suitable for management presentation
+
+This prompt automatically uses relevant NetBox MCP tools including get_site_details, search_devices, search_racks, search_circuits, search_prefixes, search_vlans, and others to gather comprehensive infrastructure data.
 
 ---
 
@@ -184,10 +197,17 @@ Analyze network infrastructure including VLANs, circuits, and racks with optiona
 3. **Choose the right prompt for your goal:**
    - **Planning**: Use device-overview and network-infrastructure
    - **Troubleshooting**: Use device-troubleshoot and ip-management
-   - **Documentation**: Use site-summary
-   - **Capacity Planning**: Use network-infrastructure with specific focus areas
+   - **Professional Documentation**: Use site-summary for comprehensive infrastructure reports
+   - **Executive Reporting**: Use site-summary for management presentations and assessments
+   - **Capacity Planning**: Use network-infrastructure with specific focus areas, or site-summary for comprehensive analysis
 
 **Example Workflows:**
+
+**Infrastructure Assessment for Management:**
+1. Use site-summary to generate a comprehensive infrastructure report
+2. Follow up with specific questions about critical findings
+3. Use device-troubleshoot for any problematic devices identified
+4. Present the structured report to stakeholders
 
 **Network Health Check:**
 1. Start with device-overview to see overall device status
@@ -195,9 +215,16 @@ Analyze network infrastructure including VLANs, circuits, and racks with optiona
 3. Follow up with specific device-troubleshoot for any problematic devices
 
 **Site Migration Planning:**
-1. Use site-summary for the source site
-2. Use ip-management to understand IP allocations
+1. Use site-summary for comprehensive source site analysis
+2. Use ip-management to understand detailed IP allocations
 3. Use network-infrastructure focusing on circuits for connectivity planning
+4. Generate site-summary report for target site planning
+
+**Quarterly Infrastructure Review:**
+1. Use site-summary for each major site to generate comprehensive reports
+2. Compare capacity utilization trends across sites
+3. Use network-infrastructure for cross-site analysis
+4. Compile executive summary from multiple site reports
 
 **Troubleshooting Workflow:**
 1. Use device-troubleshoot for the specific problematic device
