@@ -54,9 +54,19 @@ class NetBoxClient:
                 response.raise_for_status()
                 return response.json()
             except httpx.HTTPStatusError as e:
-                # Re-raise HTTPStatusError so that 404 handling can work properly
-                logger.error(f"NetBox API HTTP error: {e}")
-                raise
+                # Format appropriate error message based on status code
+                try:
+                    response_data = e.response.json() if e.response.content else None
+                except:
+                    response_data = None
+                
+                error_message = format_http_error_message(
+                    e.response.status_code, 
+                    response_data, 
+                    endpoint.split('/')[0] if '/' in endpoint else "resource"
+                )
+                logger.error(f"NetBox API HTTP error {e.response.status_code}: {error_message}")
+                raise Exception(error_message)
             except Exception as e:
                 # Handle all other errors (connection, timeout, etc.)
                 logger.error(f"NetBox API error: {e}")
@@ -72,6 +82,35 @@ def run_async(func):
         finally:
             loop.close()
     return wrapper
+
+def format_http_error_message(status_code: int, response_data: Optional[Dict] = None, resource_name: str = "resource") -> str:
+    """
+    Helper function to format HTTP error messages based on status codes.
+    
+    Args:
+        status_code: HTTP status code from the response
+        response_data: Optional response data that might contain error details
+        resource_name: Human-readable name for the resource type (e.g., "device", "site")
+    
+    Returns:
+        Formatted error message string
+    """
+    if status_code == 400:
+        return f"Bad request: Invalid parameters provided for {resource_name}"
+    elif status_code == 401:
+        return f"Authentication failed: Invalid or missing NetBox API token"
+    elif status_code == 403:
+        return f"Access forbidden: Insufficient permissions to access {resource_name}"
+    elif status_code == 404:
+        return f"{resource_name.title()} not found"
+    elif status_code == 405:
+        return f"Method not allowed for {resource_name}"
+    elif status_code == 429:
+        return f"Rate limit exceeded: Too many requests to NetBox API"
+    elif 500 <= status_code < 600:
+        return f"NetBox server error ({status_code}): Please check NetBox instance status"
+    else:
+        return f"HTTP error {status_code}: Failed to access {resource_name}"
 
 def check_empty_results(result: Dict[str, Any], resource_name: str) -> Optional[List[Dict[str, Any]]]:
     """
@@ -113,14 +152,14 @@ async def get_resource_with_404_handling(
     """
     try:
         return await netbox_client.get(endpoint)
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
+    except Exception as e:
+        # Check if this is a 404 error message
+        error_str = str(e)
+        if "not found" in error_str.lower():
             return None
         else:
+            # Re-raise other exceptions (connection errors, auth errors, etc.)
             raise
-    except Exception:
-        # Re-raise other exceptions (connection errors, etc.)
-        raise
 
 def get_mcp_tools():
     """Return MCP tool definitions"""
