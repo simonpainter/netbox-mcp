@@ -1676,10 +1676,20 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         params["name__icontains"] = args["name"]
     if "site" in args:
         # Resolve site name to site ID for proper filtering
-        site_id = await resolve_site_to_id(args["site"], netbox_client)
-        if site_id is None:
-            return [{"type": "text", "text": f"Site '{args['site']}' not found"}]
-        params["site"] = site_id
+        try:
+            site_id = await resolve_site_to_id(args["site"], netbox_client)
+            if site_id is None:
+                return [{"type": "text", "text": f"Site '{args['site']}' not found"}]
+            params["site"] = site_id
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 400:
+                return [{"type": "text", "text": f"Bad request while looking up site '{args['site']}': {e.response.text}. Please check the site name."}]
+            else:
+                # Re-raise other HTTP errors
+                raise
+        except Exception:
+            # Re-raise other exceptions (connection errors, etc.)
+            raise
     if "device_type" in args:
         params["device_type"] = args["device_type"]
     if "role" in args:
