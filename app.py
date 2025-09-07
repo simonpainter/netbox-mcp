@@ -1687,9 +1687,7 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
             else:
                 # Re-raise other HTTP errors
                 raise
-        except Exception:
-            # Re-raise other exceptions (connection errors, etc.)
-            raise
+        # Let other exceptions propagate naturally
     if "device_type" in args:
         params["device_type"] = args["device_type"]
     if "role" in args:
