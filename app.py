@@ -1675,6 +1675,10 @@ async def get_device_interfaces(args: Dict[str, Any], netbox_client: NetBoxClien
     
     if device_name and not device_id:
         search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         devices = search_result.get("results", [])
         if not devices:
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
@@ -1687,6 +1691,11 @@ async def get_device_interfaces(args: Dict[str, Any], netbox_client: NetBoxClien
         params["enabled"] = args["enabled"]
     
     result = await netbox_client.get("dcim/interfaces/", params)
+    
+    # Check for API errors
+    if result.get("error"):
+        return [{"type": "text", "text": f"Error searching interfaces: {result.get('message', 'Unknown error')}"}]
+    
     interfaces = result.get("results", [])
     
     if not interfaces:
@@ -1728,6 +1737,10 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     
     if site_name and not site_id:
         search_result = await netbox_client.get("dcim/sites/", {"name": site_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         sites = search_result.get("results", [])
         if not sites:
             return [{"type": "text", "text": f"Site '{site_name}' not found"}]
@@ -1761,8 +1774,11 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     # Include device summary if requested
     if include_devices:
         device_result = await netbox_client.get("dcim/devices/", {"site_id": site_id, "limit": 100})
-        devices = device_result.get("results", [])
-        device_count = device_result.get("count", 0)
+        if device_result.get("error"):
+            output += f"**Devices:** Error retrieving devices: {device_result.get('message', 'Unknown error')}\n\n"
+        else:
+            devices = device_result.get("results", [])
+            device_count = device_result.get("count", 0)
         
         output += f"**Devices ({device_count} total):**\n"
         if devices:
@@ -1783,8 +1799,11 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     # Include rack summary if requested
     if include_racks:
         rack_result = await netbox_client.get("dcim/racks/", {"site_id": site_id, "limit": 100})
-        racks = rack_result.get("results", [])
-        rack_count = rack_result.get("count", 0)
+        if rack_result.get("error"):
+            output += f"**Racks:** Error retrieving racks: {rack_result.get('message', 'Unknown error')}\n\n"
+        else:
+            racks = rack_result.get("results", [])
+            rack_count = rack_result.get("count", 0)
         
         output += f"**Racks ({rack_count} total):**\n"
         if racks:
@@ -1864,6 +1883,10 @@ async def get_available_ips(args: Dict[str, Any], netbox_client: NetBoxClient) -
     
     if prefix and not prefix_id:
         search_result = await netbox_client.get("ipam/prefixes/", {"prefix": prefix})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         prefixes = search_result.get("results", [])
         if not prefixes:
             return [{"type": "text", "text": f"Prefix '{prefix}' not found"}]
@@ -1871,6 +1894,10 @@ async def get_available_ips(args: Dict[str, Any], netbox_client: NetBoxClient) -
     
     # NetBox API endpoint for available IPs
     result = await netbox_client.get(f"ipam/prefixes/{prefix_id}/available-ips/", {"limit": count})
+    
+    # Check for API errors
+    if result.get("error"):
+        return [{"type": "text", "text": f"Error retrieving available IPs: {result.get('message', 'Unknown error')}"}]
     
     if not result:
         return [{"type": "text", "text": "No available IP addresses found in this prefix."}]
@@ -2067,6 +2094,10 @@ async def get_rack_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     
     if rack_name and not rack_id:
         search_result = await netbox_client.get("dcim/racks/", {"name": rack_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         racks = search_result.get("results", [])
         if not racks:
             return [{"type": "text", "text": f"Rack '{rack_name}' not found"}]
@@ -2326,6 +2357,10 @@ async def get_device_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     if device_name and not device_id:
         search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         devices = search_result.get("results", [])
         if not devices:
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
@@ -2476,6 +2511,10 @@ async def search_device_bays(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     if device_name and not device_id:
         search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         devices = search_result.get("results", [])
         if not devices:
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
@@ -2541,6 +2580,10 @@ async def get_device_bay_details(args: Dict[str, Any], netbox_client: NetBoxClie
     if not bay_id:
         # Search for bay by device and name
         search_result = await netbox_client.get("dcim/device-bays/", {"device_id": device_id, "name": bay_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         bays = search_result.get("results", [])
         if not bays:
             return [{"type": "text", "text": f"Device bay '{bay_name}' not found in device ID {device_id}"}]
@@ -2714,7 +2757,10 @@ async def get_device_role_details(args: Dict[str, Any], netbox_client: NetBoxCli
             search_result = await netbox_client.get("dcim/device-roles/", {"name": role_name})
         else:
             search_result = await netbox_client.get("dcim/device-roles/", {"slug": role_slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         roles = search_result.get("results", [])
         if not roles:
             identifier = role_name or role_slug
@@ -2809,7 +2855,10 @@ async def get_device_type_details(args: Dict[str, Any], netbox_client: NetBoxCli
             search_result = await netbox_client.get("dcim/device-types/", {"model": model})
         else:
             search_result = await netbox_client.get("dcim/device-types/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         device_types = search_result.get("results", [])
         if not device_types:
             identifier = model or slug
@@ -2927,6 +2976,10 @@ async def get_asn_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
     
     if asn_number and not asn_id:
         search_result = await netbox_client.get("ipam/asns/", {"asn": asn_number})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         asns = search_result.get("results", [])
         if not asns:
             return [{"type": "text", "text": f"ASN {asn_number} not found"}]
@@ -3021,6 +3074,10 @@ async def get_asn_range_details(args: Dict[str, Any], netbox_client: NetBoxClien
     
     if name and not range_id:
         search_result = await netbox_client.get("ipam/asn-ranges/", {"name": name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         ranges = search_result.get("results", [])
         if not ranges:
             return [{"type": "text", "text": f"ASN range '{name}' not found"}]
@@ -3138,6 +3195,10 @@ async def get_aggregate_details(args: Dict[str, Any], netbox_client: NetBoxClien
     
     if prefix and not aggregate_id:
         search_result = await netbox_client.get("ipam/aggregates/", {"prefix": prefix})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         aggregates = search_result.get("results", [])
         if not aggregates:
             return [{"type": "text", "text": f"Aggregate '{prefix}' not found"}]
@@ -3248,6 +3309,10 @@ async def get_ip_range_details(args: Dict[str, Any], netbox_client: NetBoxClient
             "start_address": start_address,
             "end_address": end_address
         })
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         ranges = search_result.get("results", [])
         if not ranges:
             return [{"type": "text", "text": f"IP range '{start_address} - {end_address}' not found"}]
@@ -3368,7 +3433,10 @@ async def get_rir_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             search_result = await netbox_client.get("ipam/rirs/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/rirs/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         rirs = search_result.get("results", [])
         if not rirs:
             identifier = name or slug
@@ -3509,7 +3577,10 @@ async def get_ipam_role_details(args: Dict[str, Any], netbox_client: NetBoxClien
             search_result = await netbox_client.get("ipam/roles/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/roles/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         roles = search_result.get("results", [])
         if not roles:
             identifier = name or slug
@@ -3640,7 +3711,10 @@ async def get_vrf_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             search_result = await netbox_client.get("ipam/vrfs/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/vrfs/", {"rd": rd})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         vrfs = search_result.get("results", [])
         if not vrfs:
             identifier = name or rd
@@ -3726,7 +3800,10 @@ async def get_vlan_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             search_result = await netbox_client.get("ipam/vlan-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/vlan-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
@@ -3800,7 +3877,10 @@ async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             search_result = await netbox_client.get("dcim/site-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("dcim/site-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
@@ -3884,7 +3964,10 @@ async def get_region_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             search_result = await netbox_client.get("dcim/regions/", {"name": name})
         else:
             search_result = await netbox_client.get("dcim/regions/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         regions = search_result.get("results", [])
         if not regions:
             identifier = name or slug
@@ -3994,7 +4077,10 @@ async def get_tenant_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             search_result = await netbox_client.get("tenancy/tenants/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/tenants/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         tenants = search_result.get("results", [])
         if not tenants:
             identifier = name or slug
@@ -4074,7 +4160,10 @@ async def get_tenant_group_details(args: Dict[str, Any], netbox_client: NetBoxCl
             search_result = await netbox_client.get("tenancy/tenant-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/tenant-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
@@ -4185,7 +4274,10 @@ async def get_contact_details(args: Dict[str, Any], netbox_client: NetBoxClient)
             search_result = await netbox_client.get("tenancy/contacts/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/contacts/", {"email": email})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         contacts = search_result.get("results", [])
         if not contacts:
             identifier = name or email
@@ -4268,7 +4360,10 @@ async def get_contact_group_details(args: Dict[str, Any], netbox_client: NetBoxC
             search_result = await netbox_client.get("tenancy/contact-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/contact-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
@@ -4356,7 +4451,10 @@ async def get_contact_role_details(args: Dict[str, Any], netbox_client: NetBoxCl
             search_result = await netbox_client.get("tenancy/contact-roles/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/contact-roles/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         roles = search_result.get("results", [])
         if not roles:
             identifier = name or slug
@@ -4457,6 +4555,10 @@ async def get_virtual_machine_details(args: Dict[str, Any], netbox_client: NetBo
     
     if not vm_id:
         search_result = await netbox_client.get("virtualization/virtual-machines/", {"name": name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         vms = search_result.get("results", [])
         if not vms:
             return [{"type": "text", "text": f"Virtual machine '{name}' not found"}]
@@ -4565,6 +4667,10 @@ async def get_cluster_details(args: Dict[str, Any], netbox_client: NetBoxClient)
     
     if not cluster_id:
         search_result = await netbox_client.get("virtualization/clusters/", {"name": name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         clusters = search_result.get("results", [])
         if not clusters:
             return [{"type": "text", "text": f"Cluster '{name}' not found"}]
