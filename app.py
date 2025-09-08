@@ -45,22 +45,35 @@ class NetBoxClient:
         }
     
     async def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
-        """Make GET request to NetBox API"""
+        """Make GET request to NetBox API with proper status code handling"""
         url = urljoin(f"{self.base_url}/api/", endpoint.lstrip('/'))
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
                 response = await client.get(url, headers=self.headers, params=params)
-                response.raise_for_status()
-                return response.json()
-            except httpx.HTTPStatusError as e:
-                # Re-raise HTTPStatusError so that 404 handling can work properly
-                logger.error(f"NetBox API HTTP error: {e}")
-                raise
+                
+                # Handle different status codes appropriately
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    # Generate a suitable JSON response for non-200 status codes
+                    logger.error(f"NetBox API HTTP error: {response.status_code} - {response.text}")
+                    return {
+                        "error": True,
+                        "status_code": response.status_code,
+                        "message": f"HTTP {response.status_code}",
+                        "detail": response.text if response.text else "No additional details"
+                    }
+                    
             except Exception as e:
                 # Handle all other errors (connection, timeout, etc.)
                 logger.error(f"NetBox API error: {e}")
-                raise Exception(f"NetBox API error: {e}")
+                return {
+                    "error": True,
+                    "status_code": None,
+                    "message": "Connection error",
+                    "detail": str(e)
+                }
 
 def run_async(func):
     """Decorator to run async functions in Flask routes"""
@@ -90,37 +103,7 @@ def check_empty_results(result: Dict[str, Any], resource_name: str) -> Optional[
         return [{"type": "text", "text": f"No {resource_name} found matching the criteria"}]
     return None
 
-async def get_resource_with_404_handling(
-    netbox_client: NetBoxClient, 
-    endpoint: str, 
-    resource_name: str, 
-    resource_id: str
-) -> Optional[Dict[str, Any]]:
-    """
-    Helper function to get a resource from NetBox API with proper 404 error handling.
-    
-    Args:
-        netbox_client: NetBox API client instance
-        endpoint: API endpoint to call (e.g., "dcim/cables/123/")
-        resource_name: Human-readable name for the resource type (e.g., "Cable")
-        resource_id: ID of the resource being requested
-    
-    Returns:
-        Resource data if found, None if 404 error
-        
-    Raises:
-        Exception: For non-404 HTTP errors or other exceptions
-    """
-    try:
-        return await netbox_client.get(endpoint)
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            return None
-        else:
-            raise
-    except Exception:
-        # Re-raise other exceptions (connection errors, etc.)
-        raise
+
 
 def get_mcp_tools():
     """Return MCP tool definitions"""
@@ -1655,6 +1638,10 @@ async def search_devices(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
     
     result = await netbox_client.get("dcim/devices/", params)
     
+    # Check for API errors
+    if result.get("error"):
+        return [{"type": "text", "text": f"Error searching devices: {result.get('message', 'Unknown error')}"}]
+    
     # Check for empty results
     empty_check = check_empty_results(result, "devices")
     if empty_check:
@@ -1688,6 +1675,10 @@ async def get_device_interfaces(args: Dict[str, Any], netbox_client: NetBoxClien
     
     if device_name and not device_id:
         search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         devices = search_result.get("results", [])
         if not devices:
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
@@ -1700,6 +1691,11 @@ async def get_device_interfaces(args: Dict[str, Any], netbox_client: NetBoxClien
         params["enabled"] = args["enabled"]
     
     result = await netbox_client.get("dcim/interfaces/", params)
+    
+    # Check for API errors
+    if result.get("error"):
+        return [{"type": "text", "text": f"Error searching interfaces: {result.get('message', 'Unknown error')}"}]
+    
     interfaces = result.get("results", [])
     
     if not interfaces:
@@ -1741,18 +1737,23 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     
     if site_name and not site_id:
         search_result = await netbox_client.get("dcim/sites/", {"name": site_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         sites = search_result.get("results", [])
         if not sites:
             return [{"type": "text", "text": f"Site '{site_name}' not found"}]
         site_id = sites[0]["id"]
     
     # Get site details
-    site = await get_resource_with_404_handling(
-        netbox_client, f"dcim/sites/{site_id}/", "Site", str(site_id)
-    )
+    site = await netbox_client.get(f"dcim/sites/{site_id}/")
     
-    if site is None:
-        return [{"type": "text", "text": f"Site with ID {site_id} not found"}]
+    if site.get("error"):
+        if site.get("status_code") == 404:
+            return [{"type": "text", "text": f"Site with ID {site_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving site: {site.get('message', 'Unknown error')}"}]
     
     region_name = site.get("region", {}).get("name", "No region") if site.get("region") else "No region"
     status = site.get("status", {}).get("label", "Unknown")
@@ -1773,8 +1774,11 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     # Include device summary if requested
     if include_devices:
         device_result = await netbox_client.get("dcim/devices/", {"site_id": site_id, "limit": 100})
-        devices = device_result.get("results", [])
-        device_count = device_result.get("count", 0)
+        if device_result.get("error"):
+            output += f"**Devices:** Error retrieving devices: {device_result.get('message', 'Unknown error')}\n\n"
+        else:
+            devices = device_result.get("results", [])
+            device_count = device_result.get("count", 0)
         
         output += f"**Devices ({device_count} total):**\n"
         if devices:
@@ -1795,8 +1799,11 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     # Include rack summary if requested
     if include_racks:
         rack_result = await netbox_client.get("dcim/racks/", {"site_id": site_id, "limit": 100})
-        racks = rack_result.get("results", [])
-        rack_count = rack_result.get("count", 0)
+        if rack_result.get("error"):
+            output += f"**Racks:** Error retrieving racks: {rack_result.get('message', 'Unknown error')}\n\n"
+        else:
+            racks = rack_result.get("results", [])
+            rack_count = rack_result.get("count", 0)
         
         output += f"**Racks ({rack_count} total):**\n"
         if racks:
@@ -1832,6 +1839,10 @@ async def search_prefixes(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["role"] = args["role"]
     
     result = await netbox_client.get("ipam/prefixes/", params)
+    
+    # Check for API errors
+    if result.get("error"):
+        return [{"type": "text", "text": f"Error searching prefixes: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "prefixes")
@@ -1872,6 +1883,10 @@ async def get_available_ips(args: Dict[str, Any], netbox_client: NetBoxClient) -
     
     if prefix and not prefix_id:
         search_result = await netbox_client.get("ipam/prefixes/", {"prefix": prefix})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         prefixes = search_result.get("results", [])
         if not prefixes:
             return [{"type": "text", "text": f"Prefix '{prefix}' not found"}]
@@ -1879,6 +1894,10 @@ async def get_available_ips(args: Dict[str, Any], netbox_client: NetBoxClient) -
     
     # NetBox API endpoint for available IPs
     result = await netbox_client.get(f"ipam/prefixes/{prefix_id}/available-ips/", {"limit": count})
+    
+    # Check for API errors
+    if result.get("error"):
+        return [{"type": "text", "text": f"Error retrieving available IPs: {result.get('message', 'Unknown error')}"}]
     
     if not result:
         return [{"type": "text", "text": "No available IP addresses found in this prefix."}]
@@ -1905,6 +1924,18 @@ async def search_vlans(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/vlans/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching VLANs: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "VLANs")
@@ -1948,6 +1979,18 @@ async def search_circuits(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("circuits/circuits/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching circuits: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "circuits")
@@ -2000,6 +2043,18 @@ async def search_racks(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("dcim/racks/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching racks: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "racks")
@@ -2039,17 +2094,22 @@ async def get_rack_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
     
     if rack_name and not rack_id:
         search_result = await netbox_client.get("dcim/racks/", {"name": rack_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         racks = search_result.get("results", [])
         if not racks:
             return [{"type": "text", "text": f"Rack '{rack_name}' not found"}]
         rack_id = racks[0]["id"]
     
-    rack = await get_resource_with_404_handling(
-        netbox_client, f"dcim/racks/{rack_id}/", "Rack", str(rack_id)
-    )
+    rack = await netbox_client.get(f"dcim/racks/{rack_id}/")
     
-    if rack is None:
-        return [{"type": "text", "text": f"Rack with ID {rack_id} not found"}]
+    if rack.get("error"):
+        if rack.get("status_code") == 404:
+            return [{"type": "text", "text": f"Rack with ID {rack_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving rack: {rack.get('message', 'Unknown error')}"}]
     
     site_name = rack.get("site", {}).get("name", "Unknown")
     location = rack.get("location", {}).get("name", "No location") if rack.get("location") else "No location"
@@ -2108,6 +2168,18 @@ async def search_rack_reservations(args: Dict[str, Any], netbox_client: NetBoxCl
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("dcim/rack-reservations/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching rack reservations: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "rack reservations")
@@ -2144,12 +2216,13 @@ async def get_rack_reservation_details(args: Dict[str, Any], netbox_client: NetB
     if not reservation_id:
         return [{"type": "text", "text": "reservation_id must be provided"}]
     
-    reservation = await get_resource_with_404_handling(
-        netbox_client, f"dcim/rack-reservations/{reservation_id}/", "Rack reservation", str(reservation_id)
-    )
+    reservation = await netbox_client.get(f"dcim/rack-reservations/{reservation_id}/")
     
-    if reservation is None:
-        return [{"type": "text", "text": f"Rack reservation with ID {reservation_id} not found"}]
+    if reservation.get("error"):
+        if reservation.get("status_code") == 404:
+            return [{"type": "text", "text": f"Rack reservation with ID {reservation_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving rack reservation: {reservation.get('message', 'Unknown error')}"}]
     
     rack_name = reservation.get("rack", {}).get("name", "Unknown")
     rack_id = reservation.get("rack", {}).get("id", "Unknown")
@@ -2185,6 +2258,18 @@ async def search_rack_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["slug"] = args["slug"]
     
     result = await netbox_client.get("dcim/rack-roles/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching rack roles: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "rack roles")
@@ -2223,6 +2308,18 @@ async def search_rack_types(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["u_height"] = args["u_height"]
     
     result = await netbox_client.get("dcim/rack-types/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching rack types: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "rack types")
@@ -2260,17 +2357,22 @@ async def get_device_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     if device_name and not device_id:
         search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         devices = search_result.get("results", [])
         if not devices:
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
         device_id = devices[0]["id"]
     
-    device = await get_resource_with_404_handling(
-        netbox_client, f"dcim/devices/{device_id}/", "Device", str(device_id)
-    )
+    device = await netbox_client.get(f"dcim/devices/{device_id}/")
     
-    if device is None:
-        return [{"type": "text", "text": f"Device with ID {device_id} not found"}]
+    if device.get("error"):
+        if device.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device with ID {device_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device: {device.get('message', 'Unknown error')}"}]
     
     site_name = device.get("site", {}).get("name", "Unknown")
     device_type = device.get("device_type", {}).get("model", "Unknown")
@@ -2311,6 +2413,18 @@ async def search_sites(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["region"] = args["region"]
     
     result = await netbox_client.get("dcim/sites/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching sites: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "sites")
@@ -2349,6 +2463,18 @@ async def search_ip_addresses(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/ip-addresses/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching IP addresses: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "IP addresses")
@@ -2385,6 +2511,10 @@ async def search_device_bays(args: Dict[str, Any], netbox_client: NetBoxClient) 
     
     if device_name and not device_id:
         search_result = await netbox_client.get("dcim/devices/", {"name": device_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         devices = search_result.get("results", [])
         if not devices:
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
@@ -2396,6 +2526,18 @@ async def search_device_bays(args: Dict[str, Any], netbox_client: NetBoxClient) 
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bays/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching device bays: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device bays")
@@ -2438,17 +2580,22 @@ async def get_device_bay_details(args: Dict[str, Any], netbox_client: NetBoxClie
     if not bay_id:
         # Search for bay by device and name
         search_result = await netbox_client.get("dcim/device-bays/", {"device_id": device_id, "name": bay_name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         bays = search_result.get("results", [])
         if not bays:
             return [{"type": "text", "text": f"Device bay '{bay_name}' not found in device ID {device_id}"}]
         bay_id = bays[0]["id"]
     
-    bay = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-bays/{bay_id}/", "Device bay", str(bay_id)
-    )
+    bay = await netbox_client.get(f"dcim/device-bays/{bay_id}/")
     
-    if bay is None:
-        return [{"type": "text", "text": f"Device bay with ID {bay_id} not found"}]
+    if bay.get("error"):
+        if bay.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device bay with ID {bay_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device bay: {bay.get('message', 'Unknown error')}"}]
     
     device_name = bay.get("device", {}).get("name", "Unknown")
     installed_device = bay.get("installed_device")
@@ -2482,6 +2629,18 @@ async def search_device_bay_templates(args: Dict[str, Any], netbox_client: NetBo
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bay-templates/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching device bay templates: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device bay templates")
@@ -2514,12 +2673,13 @@ async def get_device_bay_template_details(args: Dict[str, Any], netbox_client: N
     if not template_id:
         return [{"type": "text", "text": "template_id must be provided"}]
     
-    template = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-bay-templates/{template_id}/", "Device bay template", str(template_id)
-    )
+    template = await netbox_client.get(f"dcim/device-bay-templates/{template_id}/")
     
-    if template is None:
-        return [{"type": "text", "text": f"Device bay template with ID {template_id} not found"}]
+    if template.get("error"):
+        if template.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device bay template with ID {template_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device bay template: {template.get('message', 'Unknown error')}"}]
     
     device_type = template.get("device_type", {})
     device_type_name = f"{device_type.get('manufacturer', {}).get('name', 'Unknown')} {device_type.get('model', 'Unknown')}"
@@ -2548,6 +2708,18 @@ async def search_device_roles(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["color"] = args["color"]
     
     result = await netbox_client.get("dcim/device-roles/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching device roles: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device roles")
@@ -2585,19 +2757,23 @@ async def get_device_role_details(args: Dict[str, Any], netbox_client: NetBoxCli
             search_result = await netbox_client.get("dcim/device-roles/", {"name": role_name})
         else:
             search_result = await netbox_client.get("dcim/device-roles/", {"slug": role_slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         roles = search_result.get("results", [])
         if not roles:
             identifier = role_name or role_slug
             return [{"type": "text", "text": f"Device role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-roles/{role_id}/", "Device role", str(role_id)
-    )
+    role = await netbox_client.get(f"dcim/device-roles/{role_id}/")
     
-    if role is None:
-        return [{"type": "text", "text": f"Device role with ID {role_id} not found"}]
+    if role.get("error"):
+        if role.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device role with ID {role_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device role: {role.get('message', 'Unknown error')}"}]
     
     output = f"# Device Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -2626,6 +2802,18 @@ async def search_device_types(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["part_number__icontains"] = args["part_number"]
     
     result = await netbox_client.get("dcim/device-types/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching device types: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device types")
@@ -2667,19 +2855,23 @@ async def get_device_type_details(args: Dict[str, Any], netbox_client: NetBoxCli
             search_result = await netbox_client.get("dcim/device-types/", {"model": model})
         else:
             search_result = await netbox_client.get("dcim/device-types/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         device_types = search_result.get("results", [])
         if not device_types:
             identifier = model or slug
             return [{"type": "text", "text": f"Device type '{identifier}' not found"}]
         type_id = device_types[0]["id"]
     
-    device_type = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-types/{type_id}/", "Device type", str(type_id)
-    )
+    device_type = await netbox_client.get(f"dcim/device-types/{type_id}/")
     
-    if device_type is None:
-        return [{"type": "text", "text": f"Device type with ID {type_id} not found"}]
+    if device_type.get("error"):
+        if device_type.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device type with ID {type_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device type: {device_type.get('message', 'Unknown error')}"}]
     
     manufacturer_name = device_type.get("manufacturer", {}).get("name", "Unknown")
     
@@ -2739,6 +2931,18 @@ async def search_asns(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
         params["rir"] = args["rir"]
     
     result = await netbox_client.get("ipam/asns/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching ASNs: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "ASNs")
@@ -2772,17 +2976,22 @@ async def get_asn_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
     
     if asn_number and not asn_id:
         search_result = await netbox_client.get("ipam/asns/", {"asn": asn_number})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         asns = search_result.get("results", [])
         if not asns:
             return [{"type": "text", "text": f"ASN {asn_number} not found"}]
         asn_id = asns[0]["id"]
     
-    asn = await get_resource_with_404_handling(
-        netbox_client, f"ipam/asns/{asn_id}/", "ASN", str(asn_id)
-    )
+    asn = await netbox_client.get(f"ipam/asns/{asn_id}/")
     
-    if asn is None:
-        return [{"type": "text", "text": f"ASN with ID {asn_id} not found"}]
+    if asn.get("error"):
+        if asn.get("status_code") == 404:
+            return [{"type": "text", "text": f"ASN with ID {asn_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving ASN: {asn.get('message', 'Unknown error')}"}]
     rir_name = asn.get("rir", {}).get("name", "Unknown") if asn.get("rir") else "No RIR"
     
     output = f"# ASN Details: AS{asn['asn']}\n\n"
@@ -2865,17 +3074,22 @@ async def get_asn_range_details(args: Dict[str, Any], netbox_client: NetBoxClien
     
     if name and not range_id:
         search_result = await netbox_client.get("ipam/asn-ranges/", {"name": name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         ranges = search_result.get("results", [])
         if not ranges:
             return [{"type": "text", "text": f"ASN range '{name}' not found"}]
         range_id = ranges[0]["id"]
     
-    asn_range = await get_resource_with_404_handling(
-        netbox_client, f"ipam/asn-ranges/{range_id}/", "ASN range", str(range_id)
-    )
+    asn_range = await netbox_client.get(f"ipam/asn-ranges/{range_id}/")
     
-    if asn_range is None:
-        return [{"type": "text", "text": f"ASN range with ID {range_id} not found"}]
+    if asn_range.get("error"):
+        if asn_range.get("status_code") == 404:
+            return [{"type": "text", "text": f"ASN range with ID {range_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving ASN range: {asn_range.get('message', 'Unknown error')}"}]
     rir_name = asn_range.get("rir", {}).get("name", "Unknown") if asn_range.get("rir") else "No RIR"
     
     output = f"# ASN Range Details: {asn_range['name']}\n\n"
@@ -2903,6 +3117,18 @@ async def search_aggregates(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["family"] = args["family"]
     
     result = await netbox_client.get("ipam/aggregates/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching aggregates: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "aggregates")
@@ -2969,17 +3195,22 @@ async def get_aggregate_details(args: Dict[str, Any], netbox_client: NetBoxClien
     
     if prefix and not aggregate_id:
         search_result = await netbox_client.get("ipam/aggregates/", {"prefix": prefix})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         aggregates = search_result.get("results", [])
         if not aggregates:
             return [{"type": "text", "text": f"Aggregate '{prefix}' not found"}]
         aggregate_id = aggregates[0]["id"]
     
-    aggregate = await get_resource_with_404_handling(
-        netbox_client, f"ipam/aggregates/{aggregate_id}/", "Aggregate", str(aggregate_id)
-    )
+    aggregate = await netbox_client.get(f"ipam/aggregates/{aggregate_id}/")
     
-    if aggregate is None:
-        return [{"type": "text", "text": f"Aggregate with ID {aggregate_id} not found"}]
+    if aggregate.get("error"):
+        if aggregate.get("status_code") == 404:
+            return [{"type": "text", "text": f"Aggregate with ID {aggregate_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving aggregate: {aggregate.get('message', 'Unknown error')}"}]
     rir_name = aggregate.get("rir", {}).get("name", "Unknown") if aggregate.get("rir") else "No RIR"
     
     output = f"# Aggregate Details: {aggregate['prefix']}\n\n"
@@ -3078,17 +3309,22 @@ async def get_ip_range_details(args: Dict[str, Any], netbox_client: NetBoxClient
             "start_address": start_address,
             "end_address": end_address
         })
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         ranges = search_result.get("results", [])
         if not ranges:
             return [{"type": "text", "text": f"IP range '{start_address} - {end_address}' not found"}]
         range_id = ranges[0]["id"]
     
-    ip_range = await get_resource_with_404_handling(
-        netbox_client, f"ipam/ip-ranges/{range_id}/", "IP range", str(range_id)
-    )
+    ip_range = await netbox_client.get(f"ipam/ip-ranges/{range_id}/")
     
-    if ip_range is None:
-        return [{"type": "text", "text": f"IP range with ID {range_id} not found"}]
+    if ip_range.get("error"):
+        if ip_range.get("status_code") == 404:
+            return [{"type": "text", "text": f"IP range with ID {range_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving IP range: {ip_range.get('message', 'Unknown error')}"}]
     vrf_name = ip_range.get("vrf", {}).get("name", "Global") if ip_range.get("vrf") else "Global"
     status = ip_range.get("status", {}).get("label", "Unknown")
     role = ip_range.get("role", {}).get("name", "No role") if ip_range.get("role") else "No role"
@@ -3146,6 +3382,18 @@ async def search_route_targets(args: Dict[str, Any], netbox_client: NetBoxClient
         params["tenant"] = args["tenant"]
     
     result = await netbox_client.get("ipam/route-targets/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching route targets: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "route targets")
@@ -3185,19 +3433,23 @@ async def get_rir_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             search_result = await netbox_client.get("ipam/rirs/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/rirs/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         rirs = search_result.get("results", [])
         if not rirs:
             identifier = name or slug
             return [{"type": "text", "text": f"RIR '{identifier}' not found"}]
         rir_id = rirs[0]["id"]
     
-    rir = await get_resource_with_404_handling(
-        netbox_client, f"ipam/rirs/{rir_id}/", "RIR", str(rir_id)
-    )
+    rir = await netbox_client.get(f"ipam/rirs/{rir_id}/")
     
-    if rir is None:
-        return [{"type": "text", "text": f"RIR with ID {rir_id} not found"}]
+    if rir.get("error"):
+        if rir.get("status_code") == 404:
+            return [{"type": "text", "text": f"RIR with ID {rir_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving RIR: {rir.get('message', 'Unknown error')}"}]
     
     output = f"# RIR Details: {rir['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3273,6 +3525,18 @@ async def search_services(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["ports"] = args["ports"]
     
     result = await netbox_client.get("ipam/services/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching services: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "services")
@@ -3313,19 +3577,23 @@ async def get_ipam_role_details(args: Dict[str, Any], netbox_client: NetBoxClien
             search_result = await netbox_client.get("ipam/roles/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/roles/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         roles = search_result.get("results", [])
         if not roles:
             identifier = name or slug
             return [{"type": "text", "text": f"IPAM role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await get_resource_with_404_handling(
-        netbox_client, f"ipam/roles/{role_id}/", "IPAM role", str(role_id)
-    )
+    role = await netbox_client.get(f"ipam/roles/{role_id}/")
     
-    if role is None:
-        return [{"type": "text", "text": f"IPAM role with ID {role_id} not found"}]
+    if role.get("error"):
+        if role.get("status_code") == 404:
+            return [{"type": "text", "text": f"IPAM role with ID {role_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving IPAM role: {role.get('message', 'Unknown error')}"}]
     
     output = f"# IPAM Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3348,6 +3616,18 @@ async def search_vrfs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
         params["rd"] = args["rd"]
     
     result = await netbox_client.get("ipam/vrfs/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching VRFs: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "VRFs")
@@ -3383,6 +3663,18 @@ async def search_service_templates(args: Dict[str, Any], netbox_client: NetBoxCl
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("ipam/service-templates/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching service templates: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "service templates")
@@ -3419,19 +3711,23 @@ async def get_vrf_details(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
             search_result = await netbox_client.get("ipam/vrfs/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/vrfs/", {"rd": rd})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         vrfs = search_result.get("results", [])
         if not vrfs:
             identifier = name or rd
             return [{"type": "text", "text": f"VRF '{identifier}' not found"}]
         vrf_id = vrfs[0]["id"]
     
-    vrf = await get_resource_with_404_handling(
-        netbox_client, f"ipam/vrfs/{vrf_id}/", "VRF", str(vrf_id)
-    )
+    vrf = await netbox_client.get(f"ipam/vrfs/{vrf_id}/")
     
-    if vrf is None:
-        return [{"type": "text", "text": f"VRF with ID {vrf_id} not found"}]
+    if vrf.get("error"):
+        if vrf.get("status_code") == 404:
+            return [{"type": "text", "text": f"VRF with ID {vrf_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving VRF: {vrf.get('message', 'Unknown error')}"}]
     
     output = f"# VRF Details: {vrf['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -3455,6 +3751,18 @@ async def search_vlan_groups(args: Dict[str, Any], netbox_client: NetBoxClient) 
         params["site"] = args["site"]
     
     result = await netbox_client.get("ipam/vlan-groups/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching VLAN groups: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "VLAN groups")
@@ -3492,19 +3800,23 @@ async def get_vlan_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             search_result = await netbox_client.get("ipam/vlan-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("ipam/vlan-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
             return [{"type": "text", "text": f"VLAN group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await get_resource_with_404_handling(
-        netbox_client, f"ipam/vlan-groups/{group_id}/", "VLAN group", str(group_id)
-    )
+    group = await netbox_client.get(f"ipam/vlan-groups/{group_id}/")
     
-    if group is None:
-        return [{"type": "text", "text": f"VLAN group with ID {group_id} not found"}]
+    if group.get("error"):
+        if group.get("status_code") == 404:
+            return [{"type": "text", "text": f"VLAN group with ID {group_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving VLAN group: {group.get('message', 'Unknown error')}"}]
     site = group.get("site", {}).get("name", "No site") if group.get("site") else "No site"
     
     output = f"# VLAN Group Details: {group['name']}\n\n"
@@ -3565,19 +3877,23 @@ async def get_site_group_details(args: Dict[str, Any], netbox_client: NetBoxClie
             search_result = await netbox_client.get("dcim/site-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("dcim/site-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
             return [{"type": "text", "text": f"Site group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await get_resource_with_404_handling(
-        netbox_client, f"dcim/site-groups/{group_id}/", "Site group", str(group_id)
-    )
+    group = await netbox_client.get(f"dcim/site-groups/{group_id}/")
     
-    if group is None:
-        return [{"type": "text", "text": f"Site group with ID {group_id} not found"}]
+    if group.get("error"):
+        if group.get("status_code") == 404:
+            return [{"type": "text", "text": f"Site group with ID {group_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving site group: {group.get('message', 'Unknown error')}"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Site Group Details: {group['name']}\n\n"
@@ -3648,19 +3964,23 @@ async def get_region_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             search_result = await netbox_client.get("dcim/regions/", {"name": name})
         else:
             search_result = await netbox_client.get("dcim/regions/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         regions = search_result.get("results", [])
         if not regions:
             identifier = name or slug
             return [{"type": "text", "text": f"Region '{identifier}' not found"}]
         region_id = regions[0]["id"]
     
-    region = await get_resource_with_404_handling(
-        netbox_client, f"dcim/regions/{region_id}/", "Region", str(region_id)
-    )
+    region = await netbox_client.get(f"dcim/regions/{region_id}/")
     
-    if region is None:
-        return [{"type": "text", "text": f"Region with ID {region_id} not found"}]
+    if region.get("error"):
+        if region.get("status_code") == 404:
+            return [{"type": "text", "text": f"Region with ID {region_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving region: {region.get('message', 'Unknown error')}"}]
     parent_name = region.get("parent", {}).get("name", "No parent") if region.get("parent") else "No parent"
     
     output = f"# Region Details: {region['name']}\n\n"
@@ -3707,6 +4027,18 @@ async def search_tenants(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("tenancy/tenants/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching tenants: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "tenants")
@@ -3745,19 +4077,23 @@ async def get_tenant_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             search_result = await netbox_client.get("tenancy/tenants/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/tenants/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         tenants = search_result.get("results", [])
         if not tenants:
             identifier = name or slug
             return [{"type": "text", "text": f"Tenant '{identifier}' not found"}]
         tenant_id = tenants[0]["id"]
     
-    tenant = await get_resource_with_404_handling(
-        netbox_client, f"tenancy/tenants/{tenant_id}/", "Tenant", str(tenant_id)
-    )
+    tenant = await netbox_client.get(f"tenancy/tenants/{tenant_id}/")
     
-    if tenant is None:
-        return [{"type": "text", "text": f"Tenant with ID {tenant_id} not found"}]
+    if tenant.get("error"):
+        if tenant.get("status_code") == 404:
+            return [{"type": "text", "text": f"Tenant with ID {tenant_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving tenant: {tenant.get('message', 'Unknown error')}"}]
     group_name = tenant.get("group", {}).get("name", "No group") if tenant.get("group") else "No group"
     
     output = f"# Tenant Details: {tenant['name']}\n\n"
@@ -3824,19 +4160,23 @@ async def get_tenant_group_details(args: Dict[str, Any], netbox_client: NetBoxCl
             search_result = await netbox_client.get("tenancy/tenant-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/tenant-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
             return [{"type": "text", "text": f"Tenant group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await get_resource_with_404_handling(
-        netbox_client, f"tenancy/tenant-groups/{group_id}/", "Tenant group", str(group_id)
-    )
+    group = await netbox_client.get(f"tenancy/tenant-groups/{group_id}/")
     
-    if group is None:
-        return [{"type": "text", "text": f"Tenant group with ID {group_id} not found"}]
+    if group.get("error"):
+        if group.get("status_code") == 404:
+            return [{"type": "text", "text": f"Tenant group with ID {group_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving tenant group: {group.get('message', 'Unknown error')}"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Tenant Group Details: {group['name']}\n\n"
@@ -3881,6 +4221,18 @@ async def search_contacts(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["title__icontains"] = args["title"]
     
     result = await netbox_client.get("tenancy/contacts/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching contacts: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "contacts")
@@ -3922,19 +4274,23 @@ async def get_contact_details(args: Dict[str, Any], netbox_client: NetBoxClient)
             search_result = await netbox_client.get("tenancy/contacts/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/contacts/", {"email": email})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         contacts = search_result.get("results", [])
         if not contacts:
             identifier = name or email
             return [{"type": "text", "text": f"Contact '{identifier}' not found"}]
         contact_id = contacts[0]["id"]
     
-    contact = await get_resource_with_404_handling(
-        netbox_client, f"tenancy/contacts/{contact_id}/", "Contact", str(contact_id)
-    )
+    contact = await netbox_client.get(f"tenancy/contacts/{contact_id}/")
     
-    if contact is None:
-        return [{"type": "text", "text": f"Contact with ID {contact_id} not found"}]
+    if contact.get("error"):
+        if contact.get("status_code") == 404:
+            return [{"type": "text", "text": f"Contact with ID {contact_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving contact: {contact.get('message', 'Unknown error')}"}]
     group_name = contact.get("group", {}).get("name", "No group") if contact.get("group") else "No group"
     
     output = f"# Contact Details: {contact['name']}\n\n"
@@ -4004,19 +4360,23 @@ async def get_contact_group_details(args: Dict[str, Any], netbox_client: NetBoxC
             search_result = await netbox_client.get("tenancy/contact-groups/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/contact-groups/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         groups = search_result.get("results", [])
         if not groups:
             identifier = name or slug
             return [{"type": "text", "text": f"Contact group '{identifier}' not found"}]
         group_id = groups[0]["id"]
     
-    group = await get_resource_with_404_handling(
-        netbox_client, f"tenancy/contact-groups/{group_id}/", "Contact group", str(group_id)
-    )
+    group = await netbox_client.get(f"tenancy/contact-groups/{group_id}/")
     
-    if group is None:
-        return [{"type": "text", "text": f"Contact group with ID {group_id} not found"}]
+    if group.get("error"):
+        if group.get("status_code") == 404:
+            return [{"type": "text", "text": f"Contact group with ID {group_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving contact group: {group.get('message', 'Unknown error')}"}]
     parent_name = group.get("parent", {}).get("name", "No parent") if group.get("parent") else "No parent"
     
     output = f"# Contact Group Details: {group['name']}\n\n"
@@ -4091,19 +4451,23 @@ async def get_contact_role_details(args: Dict[str, Any], netbox_client: NetBoxCl
             search_result = await netbox_client.get("tenancy/contact-roles/", {"name": name})
         else:
             search_result = await netbox_client.get("tenancy/contact-roles/", {"slug": slug})
-        
+
+            if search_result.get("error"):
+
+                return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         roles = search_result.get("results", [])
         if not roles:
             identifier = name or slug
             return [{"type": "text", "text": f"Contact role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await get_resource_with_404_handling(
-        netbox_client, f"tenancy/contact-roles/{role_id}/", "Contact role", str(role_id)
-    )
+    role = await netbox_client.get(f"tenancy/contact-roles/{role_id}/")
     
-    if role is None:
-        return [{"type": "text", "text": f"Contact role with ID {role_id} not found"}]
+    if role.get("error"):
+        if role.get("status_code") == 404:
+            return [{"type": "text", "text": f"Contact role with ID {role_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving contact role: {role.get('message', 'Unknown error')}"}]
     
     output = f"# Contact Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -4134,6 +4498,18 @@ async def search_virtual_machines(args: Dict[str, Any], netbox_client: NetBoxCli
         params["platform"] = args["platform"]
     
     result = await netbox_client.get("virtualization/virtual-machines/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching virtual machines: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "virtual machines")
@@ -4179,17 +4555,22 @@ async def get_virtual_machine_details(args: Dict[str, Any], netbox_client: NetBo
     
     if not vm_id:
         search_result = await netbox_client.get("virtualization/virtual-machines/", {"name": name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         vms = search_result.get("results", [])
         if not vms:
             return [{"type": "text", "text": f"Virtual machine '{name}' not found"}]
         vm_id = vms[0]["id"]
     
-    vm = await get_resource_with_404_handling(
-        netbox_client, f"virtualization/virtual-machines/{vm_id}/", "Virtual machine", str(vm_id)
-    )
+    vm = await netbox_client.get(f"virtualization/virtual-machines/{vm_id}/")
     
-    if vm is None:
-        return [{"type": "text", "text": f"Virtual machine with ID {vm_id} not found"}]
+    if vm.get("error"):
+        if vm.get("status_code") == 404:
+            return [{"type": "text", "text": f"Virtual machine with ID {vm_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving virtual machine: {vm.get('message', 'Unknown error')}"}]
     
     output = f"# Virtual Machine Details: {vm['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -4237,6 +4618,18 @@ async def search_clusters(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("virtualization/clusters/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching clusters: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "clusters")
@@ -4274,17 +4667,22 @@ async def get_cluster_details(args: Dict[str, Any], netbox_client: NetBoxClient)
     
     if not cluster_id:
         search_result = await netbox_client.get("virtualization/clusters/", {"name": name})
+
+        if search_result.get("error"):
+
+            return [{"type": "text", "text": f"Error searching: {search_result.get('message', 'Unknown error')}"}]
         clusters = search_result.get("results", [])
         if not clusters:
             return [{"type": "text", "text": f"Cluster '{name}' not found"}]
         cluster_id = clusters[0]["id"]
     
-    cluster = await get_resource_with_404_handling(
-        netbox_client, f"virtualization/clusters/{cluster_id}/", "Cluster", str(cluster_id)
-    )
+    cluster = await netbox_client.get(f"virtualization/clusters/{cluster_id}/")
     
-    if cluster is None:
-        return [{"type": "text", "text": f"Cluster with ID {cluster_id} not found"}]
+    if cluster.get("error"):
+        if cluster.get("status_code") == 404:
+            return [{"type": "text", "text": f"Cluster with ID {cluster_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving cluster: {cluster.get('message', 'Unknown error')}"}]
     
     output = f"# Cluster Details: {cluster['name']}\n\n"
     output += f"**Basic Information:**\n"
@@ -4316,6 +4714,18 @@ async def search_manufacturers(args: Dict[str, Any], netbox_client: NetBoxClient
         params["slug"] = args["slug"]
     
     result = await netbox_client.get("dcim/manufacturers/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching manufacturers: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "manufacturers")
@@ -4349,6 +4759,18 @@ async def search_platforms(args: Dict[str, Any], netbox_client: NetBoxClient) ->
         params["manufacturer"] = args["manufacturer"]
     
     result = await netbox_client.get("dcim/platforms/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching platforms: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "platforms")
@@ -4387,6 +4809,18 @@ async def search_cables(args: Dict[str, Any], netbox_client: NetBoxClient) -> Li
         params["color"] = args["color"]
     
     result = await netbox_client.get("dcim/cables/", params)
+
+    
+    
+
+    
+    # Check for API errors
+
+    
+    if result.get("error"):
+
+    
+        return [{"type": "text", "text": f"Error searching cables: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "cables")
@@ -4428,12 +4862,13 @@ async def get_cable_details(args: Dict[str, Any], netbox_client: NetBoxClient) -
     if not cable_id:
         return [{"type": "text", "text": "cable_id must be provided"}]
     
-    cable = await get_resource_with_404_handling(
-        netbox_client, f"dcim/cables/{cable_id}/", "Cable", str(cable_id)
-    )
+    cable = await netbox_client.get(f"dcim/cables/{cable_id}/")
     
-    if cable is None:
-        return [{"type": "text", "text": f"Cable with ID {cable_id} not found"}]
+    if cable.get("error"):
+        if cable.get("status_code") == 404:
+            return [{"type": "text", "text": f"Cable with ID {cable_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving cable: {cable.get('message', 'Unknown error')}"}]
     
     label = cable.get("label", f"Cable {cable['id']}")
     output = f"# Cable Details: {label}\n\n"
