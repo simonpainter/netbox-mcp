@@ -45,22 +45,35 @@ class NetBoxClient:
         }
     
     async def get(self, endpoint: str, params: Optional[Dict] = None) -> Dict[str, Any]:
-        """Make GET request to NetBox API"""
+        """Make GET request to NetBox API with proper status code handling"""
         url = urljoin(f"{self.base_url}/api/", endpoint.lstrip('/'))
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             try:
                 response = await client.get(url, headers=self.headers, params=params)
-                response.raise_for_status()
-                return response.json()
-            except httpx.HTTPStatusError as e:
-                # Re-raise HTTPStatusError so that 404 handling can work properly
-                logger.error(f"NetBox API HTTP error: {e}")
-                raise
+                
+                # Handle different status codes appropriately
+                if response.status_code == 200:
+                    return response.json()
+                else:
+                    # Generate a suitable JSON response for non-200 status codes
+                    logger.error(f"NetBox API HTTP error: {response.status_code} - {response.text}")
+                    return {
+                        "error": True,
+                        "status_code": response.status_code,
+                        "message": f"HTTP {response.status_code}",
+                        "detail": response.text if response.text else "No additional details"
+                    }
+                    
             except Exception as e:
                 # Handle all other errors (connection, timeout, etc.)
                 logger.error(f"NetBox API error: {e}")
-                raise Exception(f"NetBox API error: {e}")
+                return {
+                    "error": True,
+                    "status_code": None,
+                    "message": "Connection error",
+                    "detail": str(e)
+                }
 
 def run_async(func):
     """Decorator to run async functions in Flask routes"""
@@ -90,37 +103,7 @@ def check_empty_results(result: Dict[str, Any], resource_name: str) -> Optional[
         return [{"type": "text", "text": f"No {resource_name} found matching the criteria"}]
     return None
 
-async def get_resource_with_404_handling(
-    netbox_client: NetBoxClient, 
-    endpoint: str, 
-    resource_name: str, 
-    resource_id: str
-) -> Optional[Dict[str, Any]]:
-    """
-    Helper function to get a resource from NetBox API with proper 404 error handling.
-    
-    Args:
-        netbox_client: NetBox API client instance
-        endpoint: API endpoint to call (e.g., "dcim/cables/123/")
-        resource_name: Human-readable name for the resource type (e.g., "Cable")
-        resource_id: ID of the resource being requested
-    
-    Returns:
-        Resource data if found, None if 404 error
-        
-    Raises:
-        Exception: For non-404 HTTP errors or other exceptions
-    """
-    try:
-        return await netbox_client.get(endpoint)
-    except httpx.HTTPStatusError as e:
-        if e.response.status_code == 404:
-            return None
-        else:
-            raise
-    except Exception:
-        # Re-raise other exceptions (connection errors, etc.)
-        raise
+
 
 def get_mcp_tools():
     """Return MCP tool definitions"""
@@ -1747,12 +1730,13 @@ async def get_site_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
         site_id = sites[0]["id"]
     
     # Get site details
-    site = await get_resource_with_404_handling(
-        netbox_client, f"dcim/sites/{site_id}/", "Site", str(site_id)
-    )
+    site = await netbox_client.get(f"dcim/sites/{site_id}/")
     
-    if site is None:
-        return [{"type": "text", "text": f"Site with ID {site_id} not found"}]
+    if site.get("error"):
+        if site.get("status_code") == 404:
+            return [{"type": "text", "text": f"Site with ID {site_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving site: {site.get('message', 'Unknown error')}"}]
     
     region_name = site.get("region", {}).get("name", "No region") if site.get("region") else "No region"
     status = site.get("status", {}).get("label", "Unknown")
@@ -2044,12 +2028,13 @@ async def get_rack_details(args: Dict[str, Any], netbox_client: NetBoxClient) ->
             return [{"type": "text", "text": f"Rack '{rack_name}' not found"}]
         rack_id = racks[0]["id"]
     
-    rack = await get_resource_with_404_handling(
-        netbox_client, f"dcim/racks/{rack_id}/", "Rack", str(rack_id)
-    )
+    rack = await netbox_client.get(f"dcim/racks/{rack_id}/")
     
-    if rack is None:
-        return [{"type": "text", "text": f"Rack with ID {rack_id} not found"}]
+    if rack.get("error"):
+        if rack.get("status_code") == 404:
+            return [{"type": "text", "text": f"Rack with ID {rack_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving rack: {rack.get('message', 'Unknown error')}"}]
     
     site_name = rack.get("site", {}).get("name", "Unknown")
     location = rack.get("location", {}).get("name", "No location") if rack.get("location") else "No location"
@@ -2144,12 +2129,13 @@ async def get_rack_reservation_details(args: Dict[str, Any], netbox_client: NetB
     if not reservation_id:
         return [{"type": "text", "text": "reservation_id must be provided"}]
     
-    reservation = await get_resource_with_404_handling(
-        netbox_client, f"dcim/rack-reservations/{reservation_id}/", "Rack reservation", str(reservation_id)
-    )
+    reservation = await netbox_client.get(f"dcim/rack-reservations/{reservation_id}/")
     
-    if reservation is None:
-        return [{"type": "text", "text": f"Rack reservation with ID {reservation_id} not found"}]
+    if reservation.get("error"):
+        if reservation.get("status_code") == 404:
+            return [{"type": "text", "text": f"Rack reservation with ID {reservation_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving rack reservation: {reservation.get('message', 'Unknown error')}"}]
     
     rack_name = reservation.get("rack", {}).get("name", "Unknown")
     rack_id = reservation.get("rack", {}).get("id", "Unknown")
@@ -2265,12 +2251,13 @@ async def get_device_details(args: Dict[str, Any], netbox_client: NetBoxClient) 
             return [{"type": "text", "text": f"Device '{device_name}' not found"}]
         device_id = devices[0]["id"]
     
-    device = await get_resource_with_404_handling(
-        netbox_client, f"dcim/devices/{device_id}/", "Device", str(device_id)
-    )
+    device = await netbox_client.get(f"dcim/devices/{device_id}/")
     
-    if device is None:
-        return [{"type": "text", "text": f"Device with ID {device_id} not found"}]
+    if device.get("error"):
+        if device.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device with ID {device_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device: {device.get('message', 'Unknown error')}"}]
     
     site_name = device.get("site", {}).get("name", "Unknown")
     device_type = device.get("device_type", {}).get("model", "Unknown")
@@ -2443,12 +2430,13 @@ async def get_device_bay_details(args: Dict[str, Any], netbox_client: NetBoxClie
             return [{"type": "text", "text": f"Device bay '{bay_name}' not found in device ID {device_id}"}]
         bay_id = bays[0]["id"]
     
-    bay = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-bays/{bay_id}/", "Device bay", str(bay_id)
-    )
+    bay = await netbox_client.get(f"dcim/device-bays/{bay_id}/")
     
-    if bay is None:
-        return [{"type": "text", "text": f"Device bay with ID {bay_id} not found"}]
+    if bay.get("error"):
+        if bay.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device bay with ID {bay_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device bay: {bay.get('message', 'Unknown error')}"}]
     
     device_name = bay.get("device", {}).get("name", "Unknown")
     installed_device = bay.get("installed_device")
@@ -2514,12 +2502,13 @@ async def get_device_bay_template_details(args: Dict[str, Any], netbox_client: N
     if not template_id:
         return [{"type": "text", "text": "template_id must be provided"}]
     
-    template = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-bay-templates/{template_id}/", "Device bay template", str(template_id)
-    )
+    template = await netbox_client.get(f"dcim/device-bay-templates/{template_id}/")
     
-    if template is None:
-        return [{"type": "text", "text": f"Device bay template with ID {template_id} not found"}]
+    if template.get("error"):
+        if template.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device bay template with ID {template_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device bay template: {template.get('message', 'Unknown error')}"}]
     
     device_type = template.get("device_type", {})
     device_type_name = f"{device_type.get('manufacturer', {}).get('name', 'Unknown')} {device_type.get('model', 'Unknown')}"
@@ -2592,12 +2581,13 @@ async def get_device_role_details(args: Dict[str, Any], netbox_client: NetBoxCli
             return [{"type": "text", "text": f"Device role '{identifier}' not found"}]
         role_id = roles[0]["id"]
     
-    role = await get_resource_with_404_handling(
-        netbox_client, f"dcim/device-roles/{role_id}/", "Device role", str(role_id)
-    )
+    role = await netbox_client.get(f"dcim/device-roles/{role_id}/")
     
-    if role is None:
-        return [{"type": "text", "text": f"Device role with ID {role_id} not found"}]
+    if role.get("error"):
+        if role.get("status_code") == 404:
+            return [{"type": "text", "text": f"Device role with ID {role_id} not found"}]
+        else:
+            return [{"type": "text", "text": f"Error retrieving device role: {role.get('message', 'Unknown error')}"}]
     
     output = f"# Device Role Details: {role['name']}\n\n"
     output += f"**Basic Information:**\n"
