@@ -1897,18 +1897,6 @@ async def search_vlans(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/vlans/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching VLANs: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "VLANs")
@@ -1952,18 +1940,6 @@ async def search_circuits(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("circuits/circuits/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching circuits: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "circuits")
@@ -2016,18 +1992,6 @@ async def search_racks(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["status"] = args["status"]
     
     result = await netbox_client.get("dcim/racks/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching racks: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "racks")
@@ -2137,18 +2101,6 @@ async def search_rack_reservations(args: Dict[str, Any], netbox_client: NetBoxCl
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("dcim/rack-reservations/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching rack reservations: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "rack reservations")
@@ -2227,18 +2179,6 @@ async def search_rack_roles(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["slug"] = args["slug"]
     
     result = await netbox_client.get("dcim/rack-roles/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching rack roles: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "rack roles")
@@ -2277,18 +2217,6 @@ async def search_rack_types(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["u_height"] = args["u_height"]
     
     result = await netbox_client.get("dcim/rack-types/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching rack types: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "rack types")
@@ -2378,18 +2306,6 @@ async def search_sites(args: Dict[str, Any], netbox_client: NetBoxClient) -> Lis
         params["region"] = args["region"]
     
     result = await netbox_client.get("dcim/sites/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching sites: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "sites")
@@ -2428,18 +2344,6 @@ async def search_ip_addresses(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["status"] = args["status"]
     
     result = await netbox_client.get("ipam/ip-addresses/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching IP addresses: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "IP addresses")
@@ -2487,18 +2391,6 @@ async def search_device_bays(args: Dict[str, Any], netbox_client: NetBoxClient) 
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bays/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching device bays: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device bays")
@@ -2586,18 +2478,6 @@ async def search_device_bay_templates(args: Dict[str, Any], netbox_client: NetBo
         params["name__icontains"] = args["name"]
     
     result = await netbox_client.get("dcim/device-bay-templates/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching device bay templates: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device bay templates")
@@ -2665,18 +2545,6 @@ async def search_device_roles(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["color"] = args["color"]
     
     result = await netbox_client.get("dcim/device-roles/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching device roles: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device roles")
@@ -2756,18 +2624,6 @@ async def search_device_types(args: Dict[str, Any], netbox_client: NetBoxClient)
         params["part_number__icontains"] = args["part_number"]
     
     result = await netbox_client.get("dcim/device-types/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching device types: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "device types")
@@ -2882,18 +2738,6 @@ async def search_asns(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
         params["rir"] = args["rir"]
     
     result = await netbox_client.get("ipam/asns/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching ASNs: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "ASNs")
@@ -3060,18 +2904,6 @@ async def search_aggregates(args: Dict[str, Any], netbox_client: NetBoxClient) -
         params["family"] = args["family"]
     
     result = await netbox_client.get("ipam/aggregates/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching aggregates: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "aggregates")
@@ -3317,18 +3149,6 @@ async def search_route_targets(args: Dict[str, Any], netbox_client: NetBoxClient
         params["tenant"] = args["tenant"]
     
     result = await netbox_client.get("ipam/route-targets/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching route targets: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "route targets")
@@ -3457,18 +3277,6 @@ async def search_services(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["ports"] = args["ports"]
     
     result = await netbox_client.get("ipam/services/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching services: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "services")
@@ -3545,18 +3353,6 @@ async def search_vrfs(args: Dict[str, Any], netbox_client: NetBoxClient) -> List
         params["rd"] = args["rd"]
     
     result = await netbox_client.get("ipam/vrfs/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching VRFs: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "VRFs")
@@ -3592,18 +3388,6 @@ async def search_service_templates(args: Dict[str, Any], netbox_client: NetBoxCl
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("ipam/service-templates/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching service templates: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "service templates")
@@ -3677,18 +3461,6 @@ async def search_vlan_groups(args: Dict[str, Any], netbox_client: NetBoxClient) 
         params["site"] = args["site"]
     
     result = await netbox_client.get("ipam/vlan-groups/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching VLAN groups: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "VLAN groups")
@@ -3944,18 +3716,6 @@ async def search_tenants(args: Dict[str, Any], netbox_client: NetBoxClient) -> L
         params["description__icontains"] = args["description"]
     
     result = await netbox_client.get("tenancy/tenants/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching tenants: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "tenants")
@@ -4132,18 +3892,6 @@ async def search_contacts(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["title__icontains"] = args["title"]
     
     result = await netbox_client.get("tenancy/contacts/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching contacts: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "contacts")
@@ -4400,18 +4148,6 @@ async def search_virtual_machines(args: Dict[str, Any], netbox_client: NetBoxCli
         params["platform"] = args["platform"]
     
     result = await netbox_client.get("virtualization/virtual-machines/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching virtual machines: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "virtual machines")
@@ -4516,18 +4252,6 @@ async def search_clusters(args: Dict[str, Any], netbox_client: NetBoxClient) -> 
         params["site"] = args["site"]
     
     result = await netbox_client.get("virtualization/clusters/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching clusters: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "clusters")
@@ -4608,18 +4332,6 @@ async def search_manufacturers(args: Dict[str, Any], netbox_client: NetBoxClient
         params["slug"] = args["slug"]
     
     result = await netbox_client.get("dcim/manufacturers/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching manufacturers: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "manufacturers")
@@ -4653,18 +4365,6 @@ async def search_platforms(args: Dict[str, Any], netbox_client: NetBoxClient) ->
         params["manufacturer"] = args["manufacturer"]
     
     result = await netbox_client.get("dcim/platforms/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching platforms: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "platforms")
@@ -4703,18 +4403,6 @@ async def search_cables(args: Dict[str, Any], netbox_client: NetBoxClient) -> Li
         params["color"] = args["color"]
     
     result = await netbox_client.get("dcim/cables/", params)
-
-    
-    
-
-    
-    # Check for API errors
-
-    
-    if result.get("error"):
-
-    
-        return [{"type": "text", "text": f"Error searching cables: {result.get('message', 'Unknown error')}"}]
     
     # Check for empty results
     empty_check = check_empty_results(result, "cables")
