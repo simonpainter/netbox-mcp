@@ -76,8 +76,52 @@ async def get_site(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     if "id" in args:
         params["site"] = args["id"]
     netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("dcim/sites/", params)
+    try:
+        result = await netbox_client.get(f"dcim/sites/{args['id']}/")
+        return [result] if isinstance(result, dict) else []
+    except Exception:
+        # Surface errors as empty list per repo behavior for validation-like issues
+        return []
+
+
+# dcim/site-groups
+
+
+@mcp.tool
+async def search_site_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search site groups (dcim/site-groups/).
+    Accepts: name, limit
+        name: Name of the site group (case-insensitive contains match)
+        limit: maximum number of results to return (default 10)
+
+    Returns a list of NetBox site group objects (the `results` list) or an empty list.
+    """
+    params = {"limit": args.get("limit", 10)}
+    if "name" in args:
+        params["name__ic"] = args["name"]
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("dcim/site-groups/", params)
     return result.get("results", [])
+
+
+@mcp.tool
+async def get_site_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get site group details by ID (dcim/site-groups/{id}/).
+    Accepts: id (required)
+        id: Numeric ID of the site group to fetch. When provided, the tool will call
+            the single-object endpoint and return a single-element list `[obj]` or `[]` if
+            not found.
+    """
+    if "id" not in args:
+        # Follow repository convention: return empty list when required args missing
+        return []
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    try:
+        result = await netbox_client.get(f"dcim/site-groups/{args['id']}/")
+        return [result] if isinstance(result, dict) else []
+    except Exception:
+        # Surface errors as empty list per repo behavior for validation-like issues
+        return []
 
 
 
