@@ -202,6 +202,126 @@ async def get_tenant_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
         return []
 
 
+# tenancy/contacts
+
+
+@mcp.tool
+async def search_contacts(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search contacts (tenancy/contacts/).
+    Accepts: name, title, phone, email, address, limit
+        name: Name of the contact (case-insensitive contains match)
+        title: Contact's title or role (case-insensitive contains match)
+        phone: Contact phone number (partial match)
+        email: Contact email (case-insensitive contains match)
+        address: Contact address (case-insensitive contains match)
+        limit: maximum number of results to return (default 10)
+
+    Returns a list of NetBox contact objects (the `results` list) or an empty list.
+    """
+    params = {"limit": args.get("limit", 10)}
+    if "name" in args:
+        params["name__ic"] = args["name"]
+    if "title" in args:
+        params["title__ic"] = args["title"]
+    if "phone" in args:
+        params["phone__ic"] = args["phone"]
+    if "email" in args:
+        params["email__ic"] = args["email"]
+    if "address" in args:
+        params["address__ic"] = args["address"]
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("tenancy/contacts/", params)
+    return result.get("results", [])
+
+
+@mcp.tool
+async def get_contact_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get contact details by ID (tenancy/contacts/{id}/).
+    Accepts: id (required)
+        id: Numeric ID of the contact to fetch. Returns `[obj]` or `[]`.
+    """
+    if "id" not in args:
+        return []
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    try:
+        result = await netbox_client.get(f"tenancy/contacts/{args['id']}/")
+        return [result] if isinstance(result, dict) else []
+    except Exception:
+        return []
+
+
+# tenancy/contact-groups
+
+
+@mcp.tool
+async def search_contact_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search contact groups (tenancy/contact-groups/).
+    Accepts: name, limit
+        name: Name of the contact group (case-insensitive contains match)
+        limit: maximum number of results to return (default 10)
+
+    Returns a list of NetBox contact group objects (the `results` list) or an empty list.
+    """
+    params = {"limit": args.get("limit", 10)}
+    if "name" in args:
+        params["name__ic"] = args["name"]
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("tenancy/contact-groups/", params)
+    return result.get("results", [])
+
+
+@mcp.tool
+async def get_contact_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get contact group details by ID (tenancy/contact-groups/{id}/).
+    Accepts: id (required)
+        id: Numeric ID of the contact group to fetch. Returns `[obj]` or `[]`.
+    """
+    if "id" not in args:
+        return []
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    try:
+        result = await netbox_client.get(f"tenancy/contact-groups/{args['id']}/")
+        return [result] if isinstance(result, dict) else []
+    except Exception:
+        return []
+
+
+# tenancy/contact-roles
+
+
+@mcp.tool
+async def search_contact_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search contact roles (tenancy/contact-roles/).
+    Accepts: name, limit
+        name: Name of the contact role (case-insensitive contains match)
+        limit: maximum number of results to return (default 10)
+
+    Returns a list of NetBox contact role objects (the `results` list) or an empty list.
+    """
+    params = {"limit": args.get("limit", 10)}
+    if "name" in args:
+        params["name__ic"] = args["name"]
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("tenancy/contact-roles/", params)
+    return result.get("results", [])
+
+
+@mcp.tool
+async def get_contact_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get contact role details by ID (tenancy/contact-roles/{id}/).
+    Accepts: id (required)
+        id: Numeric ID of the contact role to fetch. Returns `[obj]` or `[]`.
+    """
+    if "id" not in args:
+        return []
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    try:
+        result = await netbox_client.get(f"tenancy/contact-roles/{args['id']}/")
+        return [result] if isinstance(result, dict) else []
+    except Exception:
+        return []
+
+
 
 
 
