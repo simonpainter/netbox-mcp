@@ -175,9 +175,281 @@ async def search_racks(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     return result.get("results", []) if isinstance(result, dict) else []
 
+@mcp.tool
+async def search_prefixes(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search and return IP prefixes (structured NetBox results).
+
+    Supported args (passed to NetBox API):
+      - prefix (str): prefix string to match (e.g., '10.0.0.0/24')
+
+
+    Returns:
+      - A list of prefix objects as returned by NetBox (`result['results']`).
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+
+    if "prefix" in args:
+        params["prefix"] = args["prefix"]
+
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("ipam/prefixes/", params)
+
+    return result.get("results", []) if isinstance(result, dict) else []
+
+@mcp.tool
+async def get_available_ips(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Find available IP addresses within a prefix and return structured results.
+
+    Args accepted in `args`:
+      - prefix_id (int): NetBox prefix ID (preferred).
+      - prefix (str): Prefix string (e.g., '10.0.0.0/24') to look up the prefix_id if not provided.
+      - count (int): Maximum number of available IPs to return (default: 10).
+
+    Returns:
+      - A list of available IP objects as returned by NetBox (usually a plain list).
+      - Returns an empty list when no prefix is found or no available IPs.
+    """
+    prefix_id = args.get("prefix_id")
+    prefix = args.get("prefix")
+    count = args.get("count", 10)
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+
+    if not prefix_id and prefix:
+        search_result = await netbox_client.get("ipam/prefixes/", {"prefix": prefix})
+        prefixes = search_result.get("results", []) if isinstance(search_result, dict) else []
+        if not prefixes:
+            return []
+        prefix_id = prefixes[0]["id"]
+
+    if not prefix_id:
+        return []
+
+    result = await netbox_client.get(f"ipam/prefixes/{prefix_id}/available-ips/", {"limit": count})
+
+    if result is None:
+        return []
+    if isinstance(result, list):
+        return result
+    if isinstance(result, dict):
+        return result.get("results", [])
+    return []
+
+@mcp.tool
+async def search_vlans(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search VLANs and return structured NetBox results.
+
+    Supported args (passed to NetBox API):
+      - vid (int): VLAN ID
+      - name (str): partial VLAN name match
+      - site (str|int): site name or ID
+      - group (str|int): VLAN group
+      - status (str): status filter
+      - limit (int): maximum results (default 10)
+
+    Returns a list of VLAN objects (`result['results']`).
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+
+    if "vid" in args:
+        params["vid"] = args["vid"]
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "site" in args:
+        params["site"] = args["site"]
+    if "group" in args:
+        params["group"] = args["group"]
+    if "status" in args:
+        params["status"] = args["status"]
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("ipam/vlans/", params)
+
+    return result.get("results", []) if isinstance(result, dict) else []
 
 
 
+
+@mcp.tool
+async def search_prefixes(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search and return IP prefixes (structured NetBox results).
+
+    Supported args (passed to NetBox API):
+      - prefix (str): prefix string to match (e.g., '10.0.0.0/24')
+
+
+    Returns:
+      - A list of prefix objects as returned by NetBox (`result['results']`).
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+
+    if "prefix" in args:
+        params["prefix"] = args["prefix"]
+
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("ipam/prefixes/", params)
+
+    return result.get("results", []) if isinstance(result, dict) else []
+
+
+@mcp.tool
+async def get_available_ips(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Find available IP addresses within a prefix and return structured results.
+
+    Args accepted in `args`:
+      - prefix_id (int): NetBox prefix ID (preferred).
+      - prefix (str): Prefix string (e.g., '10.0.0.0/24') to look up the prefix_id if not provided.
+      - count (int): Maximum number of available IPs to return (default: 10).
+
+    Returns:
+      - A list of available IP objects as returned by NetBox (usually a plain list).
+      - Returns an empty list when no prefix is found or no available IPs.
+    """
+    prefix_id = args.get("prefix_id")
+    prefix = args.get("prefix")
+    count = args.get("count", 10)
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+
+    if not prefix_id and prefix:
+        search_result = await netbox_client.get("ipam/prefixes/", {"prefix": prefix})
+        prefixes = search_result.get("results", []) if isinstance(search_result, dict) else []
+        if not prefixes:
+            return []
+        prefix_id = prefixes[0]["id"]
+
+    if not prefix_id:
+        return []
+
+    result = await netbox_client.get(f"ipam/prefixes/{prefix_id}/available-ips/", {"limit": count})
+
+    if result is None:
+        return []
+    if isinstance(result, list):
+        return result
+    if isinstance(result, dict):
+        return result.get("results", [])
+    return []
+
+@mcp.tool
+async def search_circuits(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search circuits and return structured NetBox results.
+
+    Supported args:
+      - provider (str|int): provider name or ID
+      - cid (str|int): circuit identifier
+      - status (str): status filter
+      - type (str): circuit type
+      - tenant (str|int): tenant filter
+      - limit (int): maximum results (default 10)
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+    if "provider" in args:
+        params["provider"] = args["provider"]
+    if "cid" in args:
+        params["cid"] = args["cid"]
+    if "status" in args:
+        params["status"] = args["status"]
+    if "type" in args:
+        params["type"] = args["type"]
+    if "tenant" in args:
+        params["tenant"] = args["tenant"]
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("circuits/circuits/", params)
+    return result.get("results", []) if isinstance(result, dict) else []
+
+
+@mcp.tool
+async def search_rack_reservations(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search rack reservations and return structured NetBox results.
+
+    Supported args:
+      - rack (int): rack ID
+      - user (str|int): user or owner
+      - created_after (str): ISO date to filter
+      - limit (int): maximum results (default 10)
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+    if "rack" in args:
+        params["rack"] = args["rack"]
+    if "user" in args:
+        params["user"] = args["user"]
+    if "created_after" in args:
+        params["created_after"] = args["created_after"]
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("dcim/rack-reservations/", params)
+    return result.get("results", []) if isinstance(result, dict) else []
+
+
+@mcp.tool
+async def search_rack_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search rack roles and return structured NetBox results.
+
+    Supported args:
+      - name (str): partial name match
+      - slug (str): slug
+      - limit (int): maximum results (default 10)
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "slug" in args:
+        params["slug"] = args["slug"]
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("dcim/rack-roles/", params)
+    return result.get("results", []) if isinstance(result, dict) else []
+
+
+@mcp.tool
+async def search_rack_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search rack types and return structured NetBox results.
+
+    Supported args:
+      - name (str): partial name match
+      - width (int): width filter
+      - limit (int): maximum results (default 10)
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "width" in args:
+        params["width"] = args["width"]
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("dcim/rack-types/", params)
+    return result.get("results", []) if isinstance(result, dict) else []
+
+
+@mcp.tool
+async def search_device_bays(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search device bays and return structured NetBox results.
+
+    Supported args:
+      - device (int): device ID
+      - name (str): partial name match
+      - is_empty (bool): whether bay has a device installed
+      - limit (int): maximum results (default 10)
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", 10)}
+    if "device" in args:
+        params["device_id"] = args["device"]
+    if "name" in args:
+        params["name__icontains"] = args["name"]
+    if "is_empty" in args:
+        # NetBox may expose installed_device or similar; try 'device' presence
+        if args["is_empty"]:
+            params["device_id__isnull"] = True
+        else:
+            params["device_id__isnull"] = False
+
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get("dcim/device-bays/", params)
+    return result.get("results", []) if isinstance(result, dict) else []
 
 
 
