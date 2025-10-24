@@ -38,6 +38,14 @@ Insert a comment block like:
 
 above each group to make the file navigable.
 
+In addition to the group-level separator, tools should also use hierarchical API-path comments for individual resources inside a group. This mirrors the NetBox API path structure and makes it easy to find tools by endpoint. For example, use a small hierarchy of comments exactly like the repository uses:
+
+# tenancy
+
+# tenancy/tenants
+
+Place the group-level separator (e.g. `# --- tenancy ( ... ) ---`) before the group, and then use the simple `# <api-root>` and `# <api-root>/<resource>` comment lines for each resource within that group.
+
 Naming and signatures
 ---------------------
 - Search tool naming: `search_<resource>` where `<resource>` is a concise, snake_case name matching the API resource (examples: `search_sites`, `search_devices`, `search_vlans`).
