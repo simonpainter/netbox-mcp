@@ -7,7 +7,8 @@ from urllib.parse import urljoin
 import httpx
 
 
-# Configuration
+# Configuration for NetBox API client
+
 NETBOX_URL = os.getenv("NETBOX_URL", "https://netbox.example.com")
 NETBOX_TOKEN = os.getenv("NETBOX_TOKEN", "")
 
@@ -37,14 +38,39 @@ class NetBoxClient:
                 raise Exception(f"NetBox API error: {e}")
             
 
+# Small reusable helpers to reduce repetition across tools
+
+def _build_params(args: Dict[str, Any], mappings: Dict[str, str], default_limit: int = 10) -> Dict[str, Any]:
+    """Build query params for NetBox from incoming args using a mapping.
+
+    mappings: dict of incoming arg name -> NetBox query param name
+    """
+    params: Dict[str, Any] = {"limit": args.get("limit", default_limit)}
+    for incoming_name, query_name in mappings.items():
+        if incoming_name in args:
+            params[query_name] = args[incoming_name]
+    return params
+
+
+async def _search(endpoint: str, args: Dict[str, Any], mappings: Dict[str, str], default_limit: int = 10) -> List[Dict[str, Any]]:
+    params = _build_params(args, mappings, default_limit)
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    result = await netbox_client.get(endpoint, params)
+    return result.get("results", [])
+
+
+async def _get_detail(endpoint_base: str, id_value: Any) -> List[Dict[str, Any]]:
+    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
+    try:
+        result = await netbox_client.get(f"{endpoint_base}{id_value}/")
+        return [result] if isinstance(result, dict) else []
+    except Exception:
+        return []
+
+
 mcp = FastMCP("NetBox Streaming MCP Server")
 
 # Tool definitions
-
-# dcim
-
-# dcim/sites
-
 
 @mcp.tool
 async def search_sites(args: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -54,16 +80,8 @@ async def search_sites(args: Dict[str, Any]) -> List[Dict[str, Any]]:
         status: Status of the site (exact match) active
         region: Name of the region (case-insensitive search contains)
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["site_name"]
-    if "status" in args:
-        params["status"] = args["status"]
-    if "region" in args:
-        params["region__ic"] = args["region"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("dcim/sites/", params)
-    return result.get("results", [])
+    mappings = {"name": "name__ic", "status": "status", "region": "region__ic"}
+    return await _search("dcim/sites/", args, mappings)
 
 @mcp.tool
 async def get_site_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -72,19 +90,9 @@ async def get_site_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
         id: ID of the site - can be obtained from search_sites
     """
 
-    params = {"limit": args.get("limit", 1)}
-    if "id" in args:
-        params["site"] = args["id"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"dcim/sites/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        # Surface errors as empty list per repo behavior for validation-like issues
+    if "id" not in args:
         return []
-
-
-# dcim/site-groups
+    return await _get_detail("dcim/sites/", args["id"])
 
 
 @mcp.tool
@@ -96,12 +104,8 @@ async def search_site_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns a list of NetBox site group objects (the `results` list) or an empty list.
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["name"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("dcim/site-groups/", params)
-    return result.get("results", [])
+    mappings = {"name": "name__ic"}
+    return await _search("dcim/site-groups/", args, mappings)
 
 
 @mcp.tool
@@ -113,20 +117,8 @@ async def get_site_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
             not found.
     """
     if "id" not in args:
-        # Follow repository convention: return empty list when required args missing
         return []
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"dcim/site-groups/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        # Surface errors as empty list per repo behavior for validation-like issues
-        return []
-
-
-# tenancy
-
-# tenancy/tenants
+    return await _get_detail("dcim/site-groups/", args["id"])
 
 @mcp.tool
 async def search_tenants(args: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -138,15 +130,8 @@ async def search_tenants(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns a list of NetBox tenant objects (the `results` list) or an empty list.
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["name"]
-    if "group" in args:
-        # Accept either group id or name; map to tenant_group if numeric else name__ic
-        params["tenant_group"] = args["group"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("tenancy/tenants/", params)
-    return result.get("results", [])
+    mappings = {"name": "name__ic", "group": "tenant_group"}
+    return await _search("tenancy/tenants/", args, mappings)
 
 
 @mcp.tool
@@ -157,16 +142,7 @@ async def get_tenant_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     if "id" not in args:
         return []
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"tenancy/tenants/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        return []
-
-
-
-# tenancy/tenant-groups
+    return await _get_detail("tenancy/tenants/", args["id"])
 
 
 @mcp.tool
@@ -178,12 +154,8 @@ async def search_tenant_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns a list of NetBox tenant group objects (the `results` list) or an empty list.
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["name"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("tenancy/tenant-groups/", params)
-    return result.get("results", [])
+    mappings = {"name": "name__ic"}
+    return await _search("tenancy/tenant-groups/", args, mappings)
 
 
 @mcp.tool
@@ -194,15 +166,7 @@ async def get_tenant_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
     """
     if "id" not in args:
         return []
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"tenancy/tenant-groups/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        return []
-
-
-# tenancy/contacts
+    return await _get_detail("tenancy/tenant-groups/", args["id"])
 
 
 @mcp.tool
@@ -218,20 +182,14 @@ async def search_contacts(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns a list of NetBox contact objects (the `results` list) or an empty list.
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["name"]
-    if "title" in args:
-        params["title__ic"] = args["title"]
-    if "phone" in args:
-        params["phone__ic"] = args["phone"]
-    if "email" in args:
-        params["email__ic"] = args["email"]
-    if "address" in args:
-        params["address__ic"] = args["address"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("tenancy/contacts/", params)
-    return result.get("results", [])
+    mappings = {
+        "name": "name__ic",
+        "title": "title__ic",
+        "phone": "phone__ic",
+        "email": "email__ic",
+        "address": "address__ic",
+    }
+    return await _search("tenancy/contacts/", args, mappings)
 
 
 @mcp.tool
@@ -242,15 +200,7 @@ async def get_contact_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     if "id" not in args:
         return []
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"tenancy/contacts/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        return []
-
-
-# tenancy/contact-groups
+    return await _get_detail("tenancy/contacts/", args["id"])
 
 
 @mcp.tool
@@ -262,12 +212,8 @@ async def search_contact_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns a list of NetBox contact group objects (the `results` list) or an empty list.
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["name"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("tenancy/contact-groups/", params)
-    return result.get("results", [])
+    mappings = {"name": "name__ic"}
+    return await _search("tenancy/contact-groups/", args, mappings)
 
 
 @mcp.tool
@@ -278,15 +224,7 @@ async def get_contact_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]
     """
     if "id" not in args:
         return []
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"tenancy/contact-groups/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        return []
-
-
-# tenancy/contact-roles
+    return await _get_detail("tenancy/contact-groups/", args["id"])
 
 
 @mcp.tool
@@ -298,12 +236,8 @@ async def search_contact_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     Returns a list of NetBox contact role objects (the `results` list) or an empty list.
     """
-    params = {"limit": args.get("limit", 10)}
-    if "name" in args:
-        params["name__ic"] = args["name"]
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    result = await netbox_client.get("tenancy/contact-roles/", params)
-    return result.get("results", [])
+    mappings = {"name": "name__ic"}
+    return await _search("tenancy/contact-roles/", args, mappings)
 
 
 @mcp.tool
@@ -314,12 +248,12 @@ async def get_contact_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
     """
     if "id" not in args:
         return []
-    netbox_client = NetBoxClient(NETBOX_URL, NETBOX_TOKEN)
-    try:
-        result = await netbox_client.get(f"tenancy/contact-roles/{args['id']}/")
-        return [result] if isinstance(result, dict) else []
-    except Exception:
-        return []
+    return await _get_detail("tenancy/contact-roles/", args["id"])
+
+
+
+
+
 
 
 
