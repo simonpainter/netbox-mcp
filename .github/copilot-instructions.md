@@ -2,7 +2,7 @@
 
 Purpose
 ------
-This document describes the expected structure, conventions, and contributor guidance for the FastMCP-based NetBox tool collection in this repository (primary runtime: `app2.py`). The core rule: every NetBox data element in the model must be represented by two explicit MCP tools:
+This document describes the expected structure, conventions, and contributor guidance for the FastMCP-based NetBox tool collection in this repository (primary runtime: `app.py`). The core rule: every NetBox data element in the model must be represented by two explicit MCP tools:
 
 - `search_<resource>(args)`: queries the API collection endpoint and supports a set of optional filters.
 - `get_<resource>_details(args)`: fetches a single object by ID and returns a single-element list or an empty list.
@@ -83,7 +83,7 @@ When you add or reorder tools:
 - Run a quick syntax check:
 
 ```bash
-python3 -m py_compile app2.py
+python3 -m py_compile app.py
 ```
 
 - Verify imports (ensure `fastmcp`, `httpx`, and typing hints are present).
@@ -91,7 +91,7 @@ python3 -m py_compile app2.py
 
 How to add a new resource (step-by-step)
 ----------------------------------------
-1. Choose the API group (see ordering above) and open the corresponding section in `app2.py`.
+1. Choose the API group (see ordering above) and open the corresponding section in `app.py`.
 2. Create `search_<resource>` function with:
    - A clear docstring (purpose, accepted args, returns).
    - `params` mapping built from `args`.
@@ -100,7 +100,7 @@ How to add a new resource (step-by-step)
 3. Create `get_<resource>_details` function with:
    - Docstring describing it accepts `id`.
    - If `id` present: call `await client.get(f"dcim/example/{id}/")` and return `[result]` or `[]`.
-4. Run `python3 -m py_compile app2.py` and fix any syntax issues.
+4. Run `python3 -m py_compile app.py` and fix any syntax issues.
 5. Commit only the minimal relevant changes and include a short commit message describing the resource added.
 
 Examples
