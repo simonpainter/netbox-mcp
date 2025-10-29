@@ -1,221 +1,120 @@
-# NetBox MCP Server Development Instructions
+# COPILOT_INSTRUCTIONS — FastMCP NetBox tools
 
-**ALWAYS follow these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.**
+Purpose
+------
+This document describes the expected structure, conventions, and contributor guidance for the FastMCP-based NetBox tool collection in this repository (primary runtime: `app2.py`). The core rule: every NetBox data element in the model must be represented by two explicit MCP tools:
 
-NetBox MCP Server is a Python Flask application that implements the Model Context Protocol (MCP) to provide Claude Desktop with direct access to NetBox instances. It acts as a bridge between Claude Desktop and NetBox APIs, allowing natural language queries about network infrastructure.
+- `search_<resource>(args)`: queries the API collection endpoint and supports a set of optional filters.
+- `get_<resource>_details(args)`: fetches a single object by ID and returns a single-element list or an empty list.
 
-## Working Effectively
+This repository requires hand-written, descriptive docstrings for each tool (no programmatic/dynamic registrar for final production code). Tools must be grouped and ordered by NetBox API root.
 
-### Bootstrap, Build, and Test the Repository
+Repository conventions
+---------------------
+- Main MCP tool file: `app.py`.
+- NetBox HTTP helper: `NetBoxClient` defined in `app.py` (wraps `httpx.AsyncClient` and performs `get(endpoint, params)`).
+- MCP registration: functions are decorated with `@mcp.tool` and are async functions with signature `async def func(args: Dict[str, Any]) -> List[Dict[str, Any]]`.
 
-1. **Install Python dependencies:**
-   ```bash
-   pip3 install -r requirements.txt
-   ```
-   - Takes ~5 seconds to complete. NEVER CANCEL.
+API grouping and ordering
+-------------------------
+Tools in `app.py` should be physically ordered by API root in this sequence and separated by a clear comment block for readability:
 
-2. **Compile and validate Python code:**
-   ```bash
-   python3 -m py_compile app.py
-   ```
+1. circuits
+2. core
+3. dcim
+4. extras
+5. ipam
+6. plugins
+7. status
+8. tenancy
+9. users
+10. virtualization
+11. vpn
+12. wireless
 
-3. **Install Node.js dependencies (required for Claude Desktop integration):**
-   ```bash
-   npm install -g mcp-remote
-   ```
-   - Takes ~3 seconds to complete. NEVER CANCEL.
+Insert a comment block like:
 
-### Running the Application
+# --- dcim (devices, racks, interfaces, etc.) ---
 
-**CRITICAL:** The application requires two environment variables to start:
+above each group to make the file navigable.
+
+In addition to the group-level separator, tools should also use hierarchical API-path comments for individual resources inside a group. This mirrors the NetBox API path structure and makes it easy to find tools by endpoint. For example, use a small hierarchy of comments exactly like the repository uses:
+
+# tenancy
+
+# tenancy/tenants
+
+Place the group-level separator (e.g. `# --- tenancy ( ... ) ---`) before the group, and then use the simple `# <api-root>` and `# <api-root>/<resource>` comment lines for each resource within that group.
+
+Naming and signatures
+---------------------
+- Search tool naming: `search_<resource>` where `<resource>` is a concise, snake_case name matching the API resource (examples: `search_sites`, `search_devices`, `search_vlans`).
+- Get tool naming: `get_<resource>_details` (examples: `get_site_details`, `get_device_details`).
+- All tools: `async def name(args: Dict[str, Any]) -> List[Dict[str, Any]]`.
+- `search_` behavior: accept a limited set of optional filter args (documented in the docstring) and return the NetBox `results` list or an empty list.
+- `get_` behavior: accept at minimum `id` in `args`; if present fetch the `.../{id}/` endpoint and return `[object]` or `[]`.
+
+Docstrings and content requirements
+----------------------------------
+Each tool must include a multi-line docstring that:
+- Briefly describes the purpose and which NetBox endpoint it queries.
+- Lists accepted args and their types/semantics. Be explicit about which args are required vs optional.
+- Describes the return value (list of NetBox objects or single-element list) and error behavior.
+- Notes any edge-cases or special semantics (e.g., when name lookup is supported, how multiple matches are handled).
+
+Do not include long human chatter in the return value: return structured JSON objects (NetBox dicts) so downstream tools can consume them reliably.
+
+Parameter mapping guidance
+--------------------------
+Map incoming `args` to NetBox query parameters in a consistent way:
+- Partial/case-insensitive string matches: use `name__ic` where appropriate.
+- Exact ID filters: pass numeric ids as-is (e.g., `site`, `device`).
+- Defaults: set a reasonable `limit` default (typically 10 or 100 depending on the endpoint). Always read `args.get("limit", <default>)`.
+
+Errors and exceptions
+---------------------
+- Network or server errors should raise exceptions so the MCP server can surface them.
+- Validation errors (missing required arguments) should return an empty list rather than raising, following existing repo behavior.
+
+Testing & verification
+----------------------
+When you add or reorder tools:
+
+- Run a quick syntax check:
 
 ```bash
-export NETBOX_URL="https://your-netbox-instance.com"
-export NETBOX_TOKEN="your_netbox_api_token_here"
+python3 -m py_compile app2.py
 ```
 
-**Start the Flask development server:**
-```bash
-python3 app.py
-```
+- Verify imports (ensure `fastmcp`, `httpx`, and typing hints are present).
+- Keep changes small and run the syntax check after reordering large blocks.
 
-- Default port: 8080
-- Server starts immediately (< 2 seconds)
-- Accessible at `http://localhost:8080`
+How to add a new resource (step-by-step)
+----------------------------------------
+1. Choose the API group (see ordering above) and open the corresponding section in `app2.py`.
+2. Create `search_<resource>` function with:
+   - A clear docstring (purpose, accepted args, returns).
+   - `params` mapping built from `args`.
+   - Instantiate `NetBoxClient(NETBOX_URL, NETBOX_TOKEN)` and call the collection endpoint (e.g., `await client.get("dcim/example/", params)`).
+   - Return `result.get("results", [])` if result is a dict, otherwise an empty list.
+3. Create `get_<resource>_details` function with:
+   - Docstring describing it accepts `id`.
+   - If `id` present: call `await client.get(f"dcim/example/{id}/")` and return `[result]` or `[]`.
+4. Run `python3 -m py_compile app2.py` and fix any syntax issues.
+5. Commit only the minimal relevant changes and include a short commit message describing the resource added.
 
-**Without environment variables, the application will exit with error code 1:**
-- `ERROR: NETBOX_URL environment variable must be set`
-- `ERROR: NETBOX_TOKEN environment variable must be set`
+Examples
+--------
+Example Search (sites):
 
-### Testing and Validation
+- Function name: `search_sites`
+- Endpoint: `dcim/sites/`
+- Accepted args: `site_id` (exact), `site_name` (partial)
+- Return: list of site dicts
 
-**CRITICAL VALIDATION REQUIREMENT:** After making changes, ALWAYS run these validation steps:
+Example Get (site details):
 
-1. **Health Check Endpoint:**
-   ```bash
-   curl -s http://localhost:8080/health | python3 -m json.tool
-   ```
-   Expected response includes: `"status": "healthy"`, `"netbox_configured": true`
-
-2. **MCP Protocol Initialize:**
-   ```bash
-   curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-03-26", "capabilities": {}}}' \
-     http://localhost:8080/api/mcp | python3 -m json.tool
-   ```
-   Expected: Valid JSON-RPC response with `"name": "netbox-mcp-server"`
-
-3. **MCP Tools List:**
-   ```bash
-   curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}' \
-     http://localhost:8080/api/mcp | python3 -m json.tool
-   ```
-   Expected: List of available MCP tools (search_devices, get_sites, etc.)
-
-4. **Test Tool Call (will fail with connection error but validates request handling):**
-   ```bash
-   curl -s -X POST -H "Content-Type: application/json" \
-     -d '{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "search_devices", "arguments": {"limit": 1}}}' \
-     http://localhost:8080/api/mcp
-   ```
-   Expected: JSON-RPC error response (NetBox connection will fail with dummy credentials)
-
-## Manual Validation Scenarios
-
-**ALWAYS execute these complete end-to-end scenarios after making changes:**
-
-### Scenario 1: Basic Server Functionality
-1. Start server with dummy credentials: `NETBOX_URL="https://demo.netbox.dev" NETBOX_TOKEN="dummy" python3 app.py`
-2. Verify health endpoint returns healthy status
-3. Test MCP initialize handshake
-4. Verify tools list contains all expected tools
-5. Stop server gracefully (Ctrl+C)
-
-### Scenario 2: MCP Protocol Compliance
-1. Send initialize request and verify protocol version `2025-03-26`
-2. Request tools list and verify all 11 tools are present:
-   - search_devices, get_device_details, get_device_interfaces
-   - get_sites, get_site_details
-   - search_ip_addresses, get_prefixes, get_available_ips
-   - search_vlans, search_circuits, search_racks
-3. Test invalid method calls return proper JSON-RPC errors
-
-### Scenario 3: Error Handling
-1. Start without environment variables - verify proper error messages
-2. Send malformed JSON to MCP endpoint - verify error response
-3. Call non-existent tool - verify "Unknown tool" error
-
-## Repository Structure and Navigation
-
-### Key Files and Locations
-- `app.py` - Main Flask application and MCP protocol implementation
-- `requirements.txt` - Python dependencies (Flask, Flask-CORS, httpx)
-- `README.md` - Setup and usage documentation
-- `TOOLS.md` - Comprehensive MCP tools reference
-
-### Python Code Organization
-```
-app.py structure:
-├── Configuration and imports (lines 1-33)
-├── NetBoxClient class (async HTTP client)
-├── MCP tool definitions (get_mcp_tools function)
-├── MCP protocol implementation (handle_mcp_message)
-├── Flask routes (/health, /api/mcp)
-├── Tool execution functions (search_devices, get_sites, etc.)
-└── Main entry point (lines 933-950)
-```
-
-### Common Development Tasks
-
-**Adding new MCP tools:**
-1. Add tool definition to `get_mcp_tools()` function
-2. Implement tool function (async, takes args and netbox_client)
-3. Add tool to `execute_tool()` dispatcher
-4. Update TOOLS.md documentation
-
-**Modifying API endpoints:**
-- Health endpoint: `/health` (GET)
-- MCP endpoint: `/api/mcp` (GET, POST, DELETE)
-
-## Build and Test Timing Expectations
-
-- **Dependency installation:** 5 seconds - NEVER CANCEL
-- **Server startup:** < 2 seconds
-- **Health check response:** < 1 second  
-- **MCP protocol requests:** < 1 second (without NetBox connection)
-- **Node.js mcp-remote install:** 3 seconds - NEVER CANCEL
-
-## Development Environment
-
-**Python version:** 3.8+ (tested with 3.12.3)
-**Node.js version:** Any recent version (tested with 20.19.4)
-
-**No existing test framework** - Manual validation through curl commands and server responses is the primary testing method.
-
-**No built-in linting** - Code uses standard Python practices. Use `python3 -m py_compile app.py` to verify syntax.
-
-## Integration with Claude Desktop
-
-**Production deployment requires:**
-1. Hosted Flask server (e.g., with ngrok for development)
-2. Claude Desktop configuration with mcp-remote
-3. Valid NetBox instance and API token
-
-**Configuration example for Claude Desktop:**
-```json
-{
-  "mcpServers": {
-    "Netbox": {
-      "command": "npx",
-      "args": ["mcp-remote", "https://your-server-url.com/api/mcp"]
-    }
-  }
-}
-```
-
-## Critical Notes
-
-- **NEVER use default timeout values** for any commands - all complete within seconds
-- **Application does NOT build** - it's a runtime Python Flask app
-- **No database dependencies** - connects directly to external NetBox APIs
-- **Environment variables are required** for startup but can use dummy values for testing MCP protocol
-- **Real NetBox connectivity testing requires valid NetBox instance and token**
-- **Manual testing is essential** - automated test suite does not exist
-
-## Common Output References
-
-### Repository Root Contents
-```
-.
-├── .git/
-├── .github/
-├── README.md
-├── TOOLS.md  
-├── app.py
-├── requirements.txt
-└── .gitignore
-```
-
-### Successful Server Startup Output
-```
-INFO:__main__:Starting NetBox MCP Server with Streamable HTTP transport on port 8080
-INFO:__main__:NetBox URL: https://your-netbox-instance.com
-INFO:__main__:MCP Endpoint: http://localhost:8080/api/mcp
-INFO:__main__:Protocol Version: 2025-03-26 (Streamable HTTP)
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:8080
-```
-
-### Health Check Response
-```json
-{
-    "status": "healthy",
-    "timestamp": "2025-08-29T18:37:45.662193",
-    "netbox_url": "https://your-netbox-instance.com", 
-    "netbox_configured": true,
-    "transport": "streamable-http",
-    "protocol_version": "2025-03-26",
-    "mcp_endpoint": "/api/mcp"
-}
-```
+- Function name: `get_site_details`
+- Endpoint: `dcim/sites/{id}/`
+- Accepted args: `id` (required)
+- Return: `[site_dict]` or `[]`
