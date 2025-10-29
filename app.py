@@ -259,6 +259,13 @@ async def get_contact_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 
 if __name__ == "__main__":
+    # Validate required environment variables
+    if not NETBOX_URL or NETBOX_URL == "https://netbox.example.com":
+        raise SystemExit("Error: NETBOX_URL environment variable is not set or is set to the default value. Please configure it before starting the server.")
+    
+    if not NETBOX_TOKEN:
+        raise SystemExit("Error: NETBOX_TOKEN environment variable is not set. Please configure it before starting the server.")
+    
     port_env = os.getenv("MCP_PORT") or os.getenv("PORT")
     if port_env is None:
         port = 8000
