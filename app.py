@@ -1,6 +1,4 @@
 from fastmcp import FastMCP
-import asyncio
-import json
 import os
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
@@ -35,7 +33,7 @@ class NetBoxClient:
                 return response.json()
             except Exception as e:
                 # Handle all errors (connection, timeout, etc.)
-                raise Exception(f"NetBox API error: {e}")
+                raise Exception(f"NetBox API error: {e}") from e
             
 
 # Small reusable helpers to reduce repetition across tools
@@ -259,20 +257,13 @@ async def get_contact_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 
 if __name__ == "__main__":
-    # Validate required environment variables
-    if not NETBOX_URL or NETBOX_URL == "https://netbox.example.com":
-        raise SystemExit("Error: NETBOX_URL environment variable is not set or is set to the default value. Please configure it before starting the server.")
-    
-    if not NETBOX_TOKEN:
-        raise SystemExit("Error: NETBOX_TOKEN environment variable is not set. Please configure it before starting the server.")
-    
-    port_env = os.getenv("MCP_PORT") or os.getenv("PORT")
+    port_env = os.getenv("MCP_PORT")
     if port_env is None:
         port = 8000
     else:
         try:
             port = int(port_env)
         except ValueError:
-            raise SystemExit(f"Invalid MCP_PORT/PORT value: {port_env} - must be an integer")
+            raise SystemExit(f"Invalid MCP_PORT value: {port_env} - must be an integer")
 
     mcp.run(transport="http", host="0.0.0.0", port=port)

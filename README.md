@@ -25,7 +25,7 @@ Set these before running the server:
 
 - `NETBOX_URL` - Base URL to your NetBox instance (default: `https://netbox.example.com`).
 - `NETBOX_TOKEN` - NetBox API token with read permissions.
-- `MCP_PORT` or `PORT` - Port for the FastMCP HTTP transport (defaults to `8000`).
+- `MCP_PORT` - Port for the FastMCP HTTP transport. Defaults to `8000` if not set. If the value is not a valid integer, the server will exit with an error.
 
 Example (macOS / zsh):
 
