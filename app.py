@@ -76,7 +76,13 @@ mcp = FastMCP("NetBox Streaming MCP Server")
 
 # circuits/circuits
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Circuits",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_circuits(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search circuits (circuits/circuits/).
     Accepts: provider, circuit_id, circuit_type, status, limit
@@ -97,7 +103,13 @@ async def search_circuits(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("circuits/circuits/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Circuit Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_circuit_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get circuit by ID (circuits/circuits/{id}/).
     Accepts: id (required)
@@ -110,7 +122,13 @@ async def get_circuit_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # circuits/circuit-groups
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Circuit Groups",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_circuit_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search circuit groups (circuits/circuit-groups/).
     Accepts: name, limit
@@ -123,7 +141,13 @@ async def search_circuit_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("circuits/circuit-groups/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Circuit Group Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_circuit_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get circuit group by ID (circuits/circuit-groups/{id}/).
     Accepts: id (required)
@@ -136,7 +160,13 @@ async def get_circuit_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]
 
 # circuits/circuit-group-assignments
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Circuit Group Assignments",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_circuit_group_assignments(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search circuit group assignments (circuits/circuit-group-assignments/).
     Accepts: priority, group, limit
@@ -153,7 +183,13 @@ async def search_circuit_group_assignments(args: Dict[str, Any]) -> List[Dict[st
     return await _search("circuits/circuit-group-assignments/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Circuit Group Assignment Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_circuit_group_assignment_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get circuit group assignment by ID (circuits/circuit-group-assignments/{id}/).
     Accepts: id (required)
@@ -166,7 +202,13 @@ async def get_circuit_group_assignment_details(args: Dict[str, Any]) -> List[Dic
 
 # circuits/circuit-terminations
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Circuit Terminations",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_circuit_terminations(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search circuit terminations (circuits/circuit-terminations/).
     Accepts: circuit, termination, limit
@@ -183,7 +225,13 @@ async def search_circuit_terminations(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("circuits/circuit-terminations/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Circuit Termination Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_circuit_termination_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get circuit termination by ID (circuits/circuit-terminations/{id}/).
     Accepts: id (required)
@@ -196,7 +244,13 @@ async def get_circuit_termination_details(args: Dict[str, Any]) -> List[Dict[str
 
 # circuits/circuit-types
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Circuit Types",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_circuit_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search circuit types (circuits/circuit-types/).
     Accepts: name, limit
@@ -209,7 +263,13 @@ async def search_circuit_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("circuits/circuit-types/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Circuit Type Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_circuit_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get circuit type by ID (circuits/circuit-types/{id}/).
     Accepts: id (required)
@@ -222,7 +282,13 @@ async def get_circuit_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 # circuits/providers
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Providers",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_providers(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search providers (circuits/providers/).
     Accepts: name, limit
@@ -235,7 +301,13 @@ async def search_providers(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("circuits/providers/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Provider Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_provider_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get provider by ID (circuits/providers/{id}/).
     Accepts: id (required)
@@ -248,7 +320,13 @@ async def get_provider_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # circuits/provider-accounts
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Provider Accounts",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_provider_accounts(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search provider accounts (circuits/provider-accounts/).
     Accepts: name, account_number, limit
@@ -265,7 +343,13 @@ async def search_provider_accounts(args: Dict[str, Any]) -> List[Dict[str, Any]]
     return await _search("circuits/provider-accounts/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Provider Account Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_provider_account_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get provider account by ID (circuits/provider-accounts/{id}/).
     Accepts: id (required)
@@ -278,7 +362,13 @@ async def get_provider_account_details(args: Dict[str, Any]) -> List[Dict[str, A
 
 # circuits/provider-networks
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Provider Networks",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_provider_networks(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search provider networks (circuits/provider-networks/).
     Accepts: name, limit
@@ -291,7 +381,13 @@ async def search_provider_networks(args: Dict[str, Any]) -> List[Dict[str, Any]]
     return await _search("circuits/provider-networks/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Provider Network Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_provider_network_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get provider network by ID (circuits/provider-networks/{id}/).
     Accepts: id (required)
@@ -304,7 +400,13 @@ async def get_provider_network_details(args: Dict[str, Any]) -> List[Dict[str, A
 
 # circuits/virtual-circuits
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Virtual Circuits",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_virtual_circuits(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search virtual circuits (circuits/virtual-circuits/).
     Accepts: provider_network, provider_account, circuit_id, status, limit
@@ -325,7 +427,13 @@ async def search_virtual_circuits(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("circuits/virtual-circuits/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Virtual Circuit Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_virtual_circuit_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get virtual circuit by ID (circuits/virtual-circuits/{id}/).
     Accepts: id (required)
@@ -338,7 +446,13 @@ async def get_virtual_circuit_details(args: Dict[str, Any]) -> List[Dict[str, An
 
 # circuits/virtual-circuit-terminations
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Virtual Circuit Terminations",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_virtual_circuit_terminations(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search virtual circuit terminations (circuits/virtual-circuit-terminations/).
     Accepts: virtual_circuit, interface, limit
@@ -355,7 +469,13 @@ async def search_virtual_circuit_terminations(args: Dict[str, Any]) -> List[Dict
     return await _search("circuits/virtual-circuit-terminations/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Virtual Circuit Termination Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_virtual_circuit_termination_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get virtual circuit termination by ID (circuits/virtual-circuit-terminations/{id}/).
     Accepts: id (required)
@@ -368,7 +488,13 @@ async def get_virtual_circuit_termination_details(args: Dict[str, Any]) -> List[
 
 # circuits/virtual-circuit-types
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Virtual Circuit Types",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_virtual_circuit_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search virtual circuit types (circuits/virtual-circuit-types/).
     Accepts: name, limit
@@ -381,7 +507,13 @@ async def search_virtual_circuit_types(args: Dict[str, Any]) -> List[Dict[str, A
     return await _search("circuits/virtual-circuit-types/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Virtual Circuit Type Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_virtual_circuit_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get virtual circuit type by ID (circuits/virtual-circuit-types/{id}/).
     Accepts: id (required)
@@ -398,7 +530,13 @@ async def get_virtual_circuit_type_details(args: Dict[str, Any]) -> List[Dict[st
 
 # dcim/sites
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Sites",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_sites(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search sites (dcim/sites/).
     Accepts: name, status, location, region, limit
@@ -413,7 +551,13 @@ async def search_sites(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     mappings = {"name": "name__ic", "status": "status", "location": "location__ic", "region": "region__ic"}
     return await _search("dcim/sites/", args, mappings)
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Site Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_site_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get site by ID (dcim/sites/).
     Accepts: id
@@ -424,7 +568,13 @@ async def get_site_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _get_detail("dcim/sites/", args["id"])
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Site Groups",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_site_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search site groups (dcim/site-groups/).
     Accepts: name, limit
@@ -437,7 +587,13 @@ async def search_site_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/site-groups/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Site Group Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_site_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get site group details by ID (dcim/site-groups/{id}/).
     Accepts: id (required)
@@ -452,7 +608,13 @@ async def get_site_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/cables
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Cables",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_cables(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search cables (dcim/cables/).
     Accepts: status, type, label, device, location, limit
@@ -475,7 +637,13 @@ async def search_cables(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/cables/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Cable Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_cable_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get cable by ID (dcim/cables/{id}/).
     Accepts: id (required)
@@ -488,7 +656,13 @@ async def get_cable_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/console-ports
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Console Ports",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_console_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search console ports (dcim/console-ports/).
     Accepts: name, device, type, label, limit
@@ -509,7 +683,13 @@ async def search_console_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/console-ports/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Console Port Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_console_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get console port by ID (dcim/console-ports/{id}/).
     Accepts: id (required)
@@ -522,7 +702,13 @@ async def get_console_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 # dcim/console-port-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Console Port Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_console_port_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search console port templates (dcim/console-port-templates/).
     Accepts: name, device_type, type, label, limit
@@ -543,7 +729,13 @@ async def search_console_port_templates(args: Dict[str, Any]) -> List[Dict[str, 
     return await _search("dcim/console-port-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Console Port Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_console_port_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get console port template by ID (dcim/console-port-templates/{id}/).
     Accepts: id (required)
@@ -556,7 +748,13 @@ async def get_console_port_template_details(args: Dict[str, Any]) -> List[Dict[s
 
 # dcim/console-server-ports
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Console Server Ports",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_console_server_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search console server ports (dcim/console-server-ports/).
     Accepts: name, device, type, label, limit
@@ -577,7 +775,13 @@ async def search_console_server_ports(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/console-server-ports/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Console Server Port Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_console_server_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get console server port by ID (dcim/console-server-ports/{id}/).
     Accepts: id (required)
@@ -590,7 +794,13 @@ async def get_console_server_port_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/console-server-port-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Console Server Port Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_console_server_port_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search console server port templates (dcim/console-server-port-templates/).
     Accepts: name, device_type, type, label, limit
@@ -611,7 +821,13 @@ async def search_console_server_port_templates(args: Dict[str, Any]) -> List[Dic
     return await _search("dcim/console-server-port-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Console Server Port Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_console_server_port_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get console server port template by ID (dcim/console-server-port-templates/{id}/).
     Accepts: id (required)
@@ -624,7 +840,13 @@ async def get_console_server_port_template_details(args: Dict[str, Any]) -> List
 
 # dcim/devices
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Devices",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_devices(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search devices (dcim/devices/).
     Accepts: name, role, device_type, serial, asset_tag, rack, status, location, limit
@@ -653,7 +875,13 @@ async def search_devices(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/devices/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Device Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_device_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get device details by ID (dcim/devices/{id}/).
     Accepts: id (required)
@@ -666,7 +894,13 @@ async def get_device_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/device-bays
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Device Bays",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_device_bays(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search device bays (dcim/device-bays/).
     Accepts: name, device, label, limit
@@ -685,7 +919,13 @@ async def search_device_bays(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/device-bays/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Device Bay Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_device_bay_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get device bay by ID (dcim/device-bays/{id}/).
     Accepts: id (required)
@@ -698,7 +938,13 @@ async def get_device_bay_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/device-bay-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Device Bay Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_device_bay_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search device bay templates (dcim/device-bay-templates/).
     Accepts: name, device_type, label, limit
@@ -717,7 +963,13 @@ async def search_device_bay_templates(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/device-bay-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Device Bay Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_device_bay_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get device bay template by ID (dcim/device-bay-templates/{id}/).
     Accepts: id (required)
@@ -730,7 +982,13 @@ async def get_device_bay_template_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/device-roles
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Device Roles",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_device_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search device roles (dcim/device-roles/).
     Accepts: name, limit
@@ -745,7 +1003,13 @@ async def search_device_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/device-roles/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Device Role Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_device_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get device role by ID (dcim/device-roles/{id}/).
     Accepts: id (required)
@@ -758,7 +1022,13 @@ async def get_device_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/device-types
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Device Types",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_device_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search device types (dcim/device-types/).
     Accepts: name, manufacturer, limit
@@ -775,7 +1045,13 @@ async def search_device_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/device-types/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Device Type Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_device_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get device type by ID (dcim/device-types/{id}/).
     Accepts: id (required)
@@ -788,7 +1064,13 @@ async def get_device_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/front-ports
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Front Ports",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_front_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search front ports (dcim/front-ports/).
     Accepts: name, device, type, label, limit
@@ -809,7 +1091,13 @@ async def search_front_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/front-ports/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Front Port Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_front_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get front port by ID (dcim/front-ports/{id}/).
     Accepts: id (required)
@@ -822,7 +1110,13 @@ async def get_front_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/front-port-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Front Port Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_front_port_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search front port templates (dcim/front-port-templates/).
     Accepts: name, device_type, type, label, limit
@@ -843,7 +1137,13 @@ async def search_front_port_templates(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/front-port-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Front Port Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_front_port_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get front port template by ID (dcim/front-port-templates/{id}/).
     Accepts: id (required)
@@ -856,7 +1156,13 @@ async def get_front_port_template_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/interfaces
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Interfaces",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_interfaces(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search interfaces (dcim/interfaces/).
     Accepts: name, device, type, label, limit
@@ -877,7 +1183,13 @@ async def search_interfaces(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/interfaces/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Interface Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_interface_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get interface by ID (dcim/interfaces/{id}/).
     Accepts: id (required)
@@ -890,7 +1202,13 @@ async def get_interface_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/interface-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Interface Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_interface_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search interface templates (dcim/interface-templates/).
     Accepts: name, device_type, type, label, limit
@@ -911,7 +1229,13 @@ async def search_interface_templates(args: Dict[str, Any]) -> List[Dict[str, Any
     return await _search("dcim/interface-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Interface Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_interface_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get interface template by ID (dcim/interface-templates/{id}/).
     Accepts: id (required)
@@ -924,7 +1248,13 @@ async def get_interface_template_details(args: Dict[str, Any]) -> List[Dict[str,
 
 # dcim/inventory-items
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Inventory Items",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_inventory_items(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search inventory items (dcim/inventory-items/).
     Accepts: name, device, label, limit
@@ -943,7 +1273,13 @@ async def search_inventory_items(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/inventory-items/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Inventory Item Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_inventory_item_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get inventory item by ID (dcim/inventory-items/{id}/).
     Accepts: id (required)
@@ -956,7 +1292,13 @@ async def get_inventory_item_details(args: Dict[str, Any]) -> List[Dict[str, Any
 
 # dcim/inventory-item-roles
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Inventory Item Roles",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_inventory_item_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search inventory item roles (dcim/inventory-item-roles/).
     Accepts: name, limit
@@ -971,7 +1313,13 @@ async def search_inventory_item_roles(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/inventory-item-roles/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Inventory Item Role Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_inventory_item_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get inventory item role by ID (dcim/inventory-item-roles/{id}/).
     Accepts: id (required)
@@ -984,7 +1332,13 @@ async def get_inventory_item_role_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/inventory-item-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Inventory Item Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_inventory_item_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search inventory item templates (dcim/inventory-item-templates/).
     Accepts: name, device_type, label, limit
@@ -1003,7 +1357,13 @@ async def search_inventory_item_templates(args: Dict[str, Any]) -> List[Dict[str
     return await _search("dcim/inventory-item-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Inventory Item Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_inventory_item_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get inventory item template by ID (dcim/inventory-item-templates/{id}/).
     Accepts: id (required)
@@ -1016,7 +1376,13 @@ async def get_inventory_item_template_details(args: Dict[str, Any]) -> List[Dict
 
 # dcim/locations
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Locations",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_locations(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search locations (dcim/locations/).
     Accepts: name, status, limit
@@ -1033,7 +1399,13 @@ async def search_locations(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/locations/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Location Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_location_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get location by ID (dcim/locations/{id}/).
     Accepts: id (required)
@@ -1046,7 +1418,13 @@ async def get_location_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/mac-addresses
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Mac Addresses",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_mac_addresses(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search MAC addresses (dcim/mac-addresses/).
     Accepts: mac_address, device, limit
@@ -1063,7 +1441,13 @@ async def search_mac_addresses(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/mac-addresses/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Mac Address Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_mac_address_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get MAC address by ID (dcim/mac-addresses/{id}/).
     Accepts: id (required)
@@ -1076,7 +1460,13 @@ async def get_mac_address_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/manufacturers
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Manufacturers",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_manufacturers(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search manufacturers (dcim/manufacturers/).
     Accepts: name, limit
@@ -1091,7 +1481,13 @@ async def search_manufacturers(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/manufacturers/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Manufacturer Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_manufacturer_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get manufacturer by ID (dcim/manufacturers/{id}/).
     Accepts: id (required)
@@ -1104,7 +1500,13 @@ async def get_manufacturer_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 # dcim/modules
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Modules",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_modules(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search modules (dcim/modules/).
     Accepts: device, status, limit
@@ -1121,7 +1523,13 @@ async def search_modules(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/modules/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Module Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_module_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get module by ID (dcim/modules/{id}/).
     Accepts: id (required)
@@ -1134,7 +1542,13 @@ async def get_module_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/module-bays
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Module Bays",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_module_bays(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search module bays (dcim/module-bays/).
     Accepts: name, device, label, limit
@@ -1153,7 +1567,13 @@ async def search_module_bays(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/module-bays/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Module Bay Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_module_bay_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get module bay by ID (dcim/module-bays/{id}/).
     Accepts: id (required)
@@ -1166,7 +1586,13 @@ async def get_module_bay_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/module-bay-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Module Bay Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_module_bay_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search module bay templates (dcim/module-bay-templates/).
     Accepts: name, device_type, label, limit
@@ -1185,7 +1611,13 @@ async def search_module_bay_templates(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/module-bay-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Module Bay Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_module_bay_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get module bay template by ID (dcim/module-bay-templates/{id}/).
     Accepts: id (required)
@@ -1198,7 +1630,13 @@ async def get_module_bay_template_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/module-types
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Module Types",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_module_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search module types (dcim/module-types/).
     Accepts: name, manufacturer, limit
@@ -1215,7 +1653,13 @@ async def search_module_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/module-types/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Module Type Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_module_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get module type by ID (dcim/module-types/{id}/).
     Accepts: id (required)
@@ -1228,7 +1672,13 @@ async def get_module_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/module-type-profiles
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Module Type Profiles",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_module_type_profiles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search module type profiles (dcim/module-type-profiles/).
     Accepts: name, limit
@@ -1243,7 +1693,13 @@ async def search_module_type_profiles(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/module-type-profiles/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Module Type Profile Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_module_type_profile_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get module type profile by ID (dcim/module-type-profiles/{id}/).
     Accepts: id (required)
@@ -1256,7 +1712,13 @@ async def get_module_type_profile_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/platforms
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Platforms",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_platforms(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search platforms (dcim/platforms/).
     Accepts: name, manufacturer, limit
@@ -1273,7 +1735,13 @@ async def search_platforms(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/platforms/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Platform Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_platform_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get platform by ID (dcim/platforms/{id}/).
     Accepts: id (required)
@@ -1286,7 +1754,13 @@ async def get_platform_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/power-feeds
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Power Feeds",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_power_feeds(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search power feeds (dcim/power-feeds/).
     Accepts: name, status, type, limit
@@ -1305,7 +1779,13 @@ async def search_power_feeds(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/power-feeds/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Power Feed Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_power_feed_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get power feed by ID (dcim/power-feeds/{id}/).
     Accepts: id (required)
@@ -1318,7 +1798,13 @@ async def get_power_feed_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/power-outlets
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Power Outlets",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_power_outlets(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search power outlets (dcim/power-outlets/).
     Accepts: name, device, type, label, limit
@@ -1339,7 +1825,13 @@ async def search_power_outlets(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/power-outlets/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Power Outlet Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_power_outlet_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get power outlet by ID (dcim/power-outlets/{id}/).
     Accepts: id (required)
@@ -1352,7 +1844,13 @@ async def get_power_outlet_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 # dcim/power-outlet-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Power Outlet Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_power_outlet_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search power outlet templates (dcim/power-outlet-templates/).
     Accepts: name, device_type, type, label, limit
@@ -1373,7 +1871,13 @@ async def search_power_outlet_templates(args: Dict[str, Any]) -> List[Dict[str, 
     return await _search("dcim/power-outlet-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Power Outlet Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_power_outlet_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get power outlet template by ID (dcim/power-outlet-templates/{id}/).
     Accepts: id (required)
@@ -1386,7 +1890,13 @@ async def get_power_outlet_template_details(args: Dict[str, Any]) -> List[Dict[s
 
 # dcim/power-panels
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Power Panels",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_power_panels(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search power panels (dcim/power-panels/).
     Accepts: name, location, limit
@@ -1403,7 +1913,13 @@ async def search_power_panels(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/power-panels/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Power Panel Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_power_panel_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get power panel by ID (dcim/power-panels/{id}/).
     Accepts: id (required)
@@ -1416,7 +1932,13 @@ async def get_power_panel_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/power-ports
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Power Ports",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_power_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search power ports (dcim/power-ports/).
     Accepts: name, device, type, label, limit
@@ -1437,7 +1959,13 @@ async def search_power_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/power-ports/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Power Port Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_power_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get power port by ID (dcim/power-ports/{id}/).
     Accepts: id (required)
@@ -1450,7 +1978,13 @@ async def get_power_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/power-port-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Power Port Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_power_port_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search power port templates (dcim/power-port-templates/).
     Accepts: name, device_type, type, label, limit
@@ -1471,7 +2005,13 @@ async def search_power_port_templates(args: Dict[str, Any]) -> List[Dict[str, An
     return await _search("dcim/power-port-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Power Port Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_power_port_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get power port template by ID (dcim/power-port-templates/{id}/).
     Accepts: id (required)
@@ -1484,7 +2024,13 @@ async def get_power_port_template_details(args: Dict[str, Any]) -> List[Dict[str
 
 # dcim/racks
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Racks",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_racks(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search racks (dcim/racks/).
     Accepts: name, status, location, limit
@@ -1503,7 +2049,13 @@ async def search_racks(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/racks/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Rack Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_rack_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get rack by ID (dcim/racks/{id}/).
     Accepts: id (required)
@@ -1516,7 +2068,13 @@ async def get_rack_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/rack-reservations
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Rack Reservations",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_rack_reservations(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search rack reservations (dcim/rack-reservations/).
     Accepts: rack, limit
@@ -1531,7 +2089,13 @@ async def search_rack_reservations(args: Dict[str, Any]) -> List[Dict[str, Any]]
     return await _search("dcim/rack-reservations/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Rack Reservation Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_rack_reservation_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get rack reservation by ID (dcim/rack-reservations/{id}/).
     Accepts: id (required)
@@ -1544,7 +2108,13 @@ async def get_rack_reservation_details(args: Dict[str, Any]) -> List[Dict[str, A
 
 # dcim/rack-roles
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Rack Roles",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_rack_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search rack roles (dcim/rack-roles/).
     Accepts: name, limit
@@ -1559,7 +2129,13 @@ async def search_rack_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/rack-roles/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Rack Role Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_rack_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get rack role by ID (dcim/rack-roles/{id}/).
     Accepts: id (required)
@@ -1572,7 +2148,13 @@ async def get_rack_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/rack-types
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Rack Types",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_rack_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search rack types (dcim/rack-types/).
     Accepts: name, manufacturer, limit
@@ -1589,7 +2171,13 @@ async def search_rack_types(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/rack-types/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Rack Type Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_rack_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get rack type by ID (dcim/rack-types/{id}/).
     Accepts: id (required)
@@ -1602,7 +2190,13 @@ async def get_rack_type_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/rear-ports
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Rear Ports",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_rear_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search rear ports (dcim/rear-ports/).
     Accepts: name, device, type, label, limit
@@ -1623,7 +2217,13 @@ async def search_rear_ports(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/rear-ports/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Rear Port Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_rear_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get rear port by ID (dcim/rear-ports/{id}/).
     Accepts: id (required)
@@ -1636,7 +2236,13 @@ async def get_rear_port_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/rear-port-templates
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Rear Port Templates",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_rear_port_templates(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search rear port templates (dcim/rear-port-templates/).
     Accepts: name, device_type, type, label, limit
@@ -1657,7 +2263,13 @@ async def search_rear_port_templates(args: Dict[str, Any]) -> List[Dict[str, Any
     return await _search("dcim/rear-port-templates/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Rear Port Template Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_rear_port_template_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get rear port template by ID (dcim/rear-port-templates/{id}/).
     Accepts: id (required)
@@ -1670,7 +2282,13 @@ async def get_rear_port_template_details(args: Dict[str, Any]) -> List[Dict[str,
 
 # dcim/regions
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Regions",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_regions(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search regions (dcim/regions/).
     Accepts: name, limit
@@ -1685,7 +2303,13 @@ async def search_regions(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/regions/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Region Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_region_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get region by ID (dcim/regions/{id}/).
     Accepts: id (required)
@@ -1698,7 +2322,13 @@ async def get_region_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # dcim/virtual-chassis
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Virtual Chassis",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_virtual_chassis(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search virtual chassis (dcim/virtual-chassis/).
     Accepts: name, limit
@@ -1713,7 +2343,13 @@ async def search_virtual_chassis(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("dcim/virtual-chassis/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Virtual Chassis Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_virtual_chassis_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get virtual chassis by ID (dcim/virtual-chassis/{id}/).
     Accepts: id (required)
@@ -1726,7 +2362,13 @@ async def get_virtual_chassis_details(args: Dict[str, Any]) -> List[Dict[str, An
 
 # dcim/virtual-device-contexts
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Virtual Device Contexts",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_virtual_device_contexts(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search virtual device contexts (dcim/virtual-device-contexts/).
     Accepts: name, device, status, limit
@@ -1745,7 +2387,13 @@ async def search_virtual_device_contexts(args: Dict[str, Any]) -> List[Dict[str,
     return await _search("dcim/virtual-device-contexts/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Virtual Device Context Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_virtual_device_context_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get virtual device context by ID (dcim/virtual-device-contexts/{id}/).
     Accepts: id (required)
@@ -1762,7 +2410,13 @@ async def get_virtual_device_context_details(args: Dict[str, Any]) -> List[Dict[
 
 # tenancy/tenants
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Tenants",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_tenants(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search tenants (tenancy/tenants/).
     Accepts: name, group, limit
@@ -1776,7 +2430,13 @@ async def search_tenants(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("tenancy/tenants/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Tenant Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_tenant_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get tenant details by ID (tenancy/tenants/{id}/).
     Accepts: id (required)
@@ -1789,7 +2449,13 @@ async def get_tenant_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # tenancy/tenant-groups
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Tenant Groups",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_tenant_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search tenant groups (tenancy/tenant-groups/).
     Accepts: name, limit
@@ -1802,7 +2468,13 @@ async def search_tenant_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("tenancy/tenant-groups/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Tenant Group Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_tenant_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get tenant group details by ID (tenancy/tenant-groups/{id}/).
     Accepts: id (required)
@@ -1815,7 +2487,13 @@ async def get_tenant_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 # tenancy/contacts
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Contacts",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_contacts(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search contacts (tenancy/contacts/).
     Accepts: name, title, phone, email, address, limit
@@ -1838,7 +2516,13 @@ async def search_contacts(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("tenancy/contacts/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Contact Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_contact_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get contact details by ID (tenancy/contacts/{id}/).
     Accepts: id (required)
@@ -1851,7 +2535,13 @@ async def get_contact_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 # tenancy/contact-groups
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Contact Groups",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_contact_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search contact groups (tenancy/contact-groups/).
     Accepts: name, limit
@@ -1864,7 +2554,13 @@ async def search_contact_groups(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("tenancy/contact-groups/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Contact Group Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_contact_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get contact group details by ID (tenancy/contact-groups/{id}/).
     Accepts: id (required)
@@ -1877,7 +2573,13 @@ async def get_contact_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]
 
 # tenancy/contact-roles
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Search Contact Roles",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def search_contact_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search contact roles (tenancy/contact-roles/).
     Accepts: name, limit
@@ -1890,7 +2592,13 @@ async def search_contact_roles(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     return await _search("tenancy/contact-roles/", args, mappings)
 
 
-@mcp.tool
+@mcp.tool(
+    annotations={
+        "title": "Get Contact Role Details",
+        "readOnlyHint": True,
+        "openWorldHint": True
+    }
+)
 async def get_contact_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Get contact role details by ID (tenancy/contact-roles/{id}/).
     Accepts: id (required)
