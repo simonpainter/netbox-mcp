@@ -123,11 +123,11 @@ async def search_devices(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search devices (dcim/devices/).
     Accepts: name, role, device_type, serial, asset_tag, rack, limit
         name: Name of the device (case-insensitive contains match)
-        role: Device role ID or name (exact match by ID, or case-insensitive contains by name)
-        device_type: Device type ID or name (exact match by ID, or case-insensitive contains by name)
+        role: Device role ID or slug (NetBox API accepts numeric ID or slug)
+        device_type: Device type ID or slug (NetBox API accepts numeric ID or slug)
         serial: Serial number (case-insensitive contains match)
         asset_tag: Asset tag (case-insensitive contains match)
-        rack: Rack ID (exact match by numeric ID)
+        rack: Rack ID (numeric ID)
         limit: maximum number of results to return (default 10)
 
     Returns a list of NetBox device objects (the `results` list) or an empty list.
