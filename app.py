@@ -1,5 +1,4 @@
 from fastmcp import FastMCP
-import asyncio
 import os
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
