@@ -75,8 +75,8 @@ async def search_sites(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search sites (dcim/sites/).
     Accepts: name, status, location, region, limit
         name: Name of the site (case-insensitive search contains)
-        status: Status of the site (exact match) active
-        location: Location name or ID (case-insensitive search contains)
+        status: Status of the site (exact match), e.g., 'active', 'planned', 'retired'
+        location: Location name (case-insensitive search contains)
         region: Name of the region (case-insensitive search contains)
         limit: Maximum number of results to return (default 10)
     
