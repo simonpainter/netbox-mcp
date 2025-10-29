@@ -35,7 +35,7 @@ class NetBoxClient:
                 return response.json()
             except Exception as e:
                 # Handle all errors (connection, timeout, etc.)
-                raise Exception(f"NetBox API error: {e}")
+                raise Exception(f"NetBox API error: {e}") from e
             
 
 # Small reusable helpers to reduce repetition across tools
