@@ -50,7 +50,7 @@ The server will bind to 0.0.0.0 on the configured port and serve the FastMCP HTT
 `app.py` registers MCP tools for NetBox resources. Examples included in this repository:
 
 - `search_sites` — search of `dcim/sites/` (supports partial/case-insensitive name queries)
-- `get_site` — site lookup
+- `get_site_details` — site lookup
 - `search_site_groups` — search of `dcim/site-groups/` (supports `name__ic`)
 - `get_site_group_details` — single site-group lookup by `id`
 
