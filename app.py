@@ -117,6 +117,43 @@ async def get_site_group_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
         return []
     return await _get_detail("dcim/site-groups/", args["id"])
 
+
+@mcp.tool
+async def search_devices(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Search devices (dcim/devices/).
+    Accepts: name, role, device_type, serial, asset_tag, rack, limit
+        name: Name of the device (case-insensitive contains match)
+        role: Device role ID or name (exact match by ID, or case-insensitive contains by name)
+        device_type: Device type ID or name (exact match by ID, or case-insensitive contains by name)
+        serial: Serial number (case-insensitive contains match)
+        asset_tag: Asset tag (case-insensitive contains match)
+        rack: Rack ID (exact match by numeric ID)
+        limit: maximum number of results to return (default 10)
+
+    Returns a list of NetBox device objects (the `results` list) or an empty list.
+    """
+    mappings = {
+        "name": "name__ic",
+        "role": "role",
+        "device_type": "device_type",
+        "serial": "serial__ic",
+        "asset_tag": "asset_tag__ic",
+        "rack": "rack_id",
+    }
+    return await _search("dcim/devices/", args, mappings)
+
+
+@mcp.tool
+async def get_device_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Get device details by ID (dcim/devices/{id}/).
+    Accepts: id (required)
+        id: Numeric ID of the device to fetch. Returns `[obj]` or `[]`.
+    """
+    if "id" not in args:
+        return []
+    return await _get_detail("dcim/devices/", args["id"])
+
+
 @mcp.tool
 async def search_tenants(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search tenants (tenancy/tenants/).
