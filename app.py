@@ -89,7 +89,6 @@ async def get_site_details(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     Accepts: id
         id: ID of the site - can be obtained from search_sites
     """
-
     if "id" not in args:
         return []
     return await _get_detail("dcim/sites/", args["id"])
