@@ -73,12 +73,16 @@ mcp = FastMCP("NetBox Streaming MCP Server")
 @mcp.tool
 async def search_sites(args: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Search sites (dcim/sites/).
-    Accepts: name, status, region, limit
+    Accepts: name, status, location, region, limit
         name: Name of the site (case-insensitive search contains)
-        status: Status of the site (exact match) active
+        status: Status of the site (exact match), e.g., 'active', 'planned', 'retired'
+        location: Location name (case-insensitive search contains)
         region: Name of the region (case-insensitive search contains)
+        limit: Maximum number of results to return (default 10)
+    
+    Returns a list of NetBox site objects (the `results` list) or an empty list.
     """
-    mappings = {"name": "name__ic", "status": "status", "region": "region__ic"}
+    mappings = {"name": "name__ic", "status": "status", "location": "location__ic", "region": "region__ic"}
     return await _search("dcim/sites/", args, mappings)
 
 @mcp.tool
