@@ -257,13 +257,13 @@ async def get_contact_role_details(args: Dict[str, Any]) -> List[Dict[str, Any]]
 
 
 if __name__ == "__main__":
-    port_env = os.getenv("MCP_PORT") or os.getenv("PORT")
+    port_env = os.getenv("MCP_PORT")
     if port_env is None:
         port = 8000
     else:
         try:
             port = int(port_env)
         except ValueError:
-            raise SystemExit(f"Invalid MCP_PORT/PORT value: {port_env} - must be an integer")
+            raise SystemExit(f"Invalid MCP_PORT value: {port_env} - must be an integer")
 
     mcp.run(transport="http", host="0.0.0.0", port=port)
