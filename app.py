@@ -16,17 +16,6 @@ NETBOX_TOKEN = os.getenv("NETBOX_TOKEN", "")
 _shared_http_client: Optional[httpx.AsyncClient] = None
 _init_lock = None
 
-def _ensure_lock():
-    """Ensure the initialization lock exists"""
-    global _init_lock
-    if _init_lock is None:
-        try:
-            _init_lock = asyncio.Lock()
-        except RuntimeError:
-            # No event loop yet, will be created on first async call
-            pass
-    return _init_lock
-
 async def _get_shared_client() -> httpx.AsyncClient:
     """Get or create the shared HTTP client (thread-safe).
     
