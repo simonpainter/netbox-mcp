@@ -1,4 +1,5 @@
 from fastmcp import FastMCP
+import asyncio
 import os
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
@@ -13,13 +14,37 @@ NETBOX_TOKEN = os.getenv("NETBOX_TOKEN", "")
 # Shared HTTP client to avoid creating multiple clients concurrently
 # This prevents "unhandled errors in a TaskGroup" when multiple tools run simultaneously
 _shared_http_client: Optional[httpx.AsyncClient] = None
+_client_lock: Optional[asyncio.Lock] = None
 
-def _get_shared_client() -> httpx.AsyncClient:
-    """Get or create the shared HTTP client"""
+def _get_client_lock() -> asyncio.Lock:
+    """Get or create the lock for thread-safe client initialization"""
+    global _client_lock
+    if _client_lock is None:
+        _client_lock = asyncio.Lock()
+    return _client_lock
+
+async def _get_shared_client() -> httpx.AsyncClient:
+    """Get or create the shared HTTP client (thread-safe)"""
     global _shared_http_client
-    if _shared_http_client is None:
-        _shared_http_client = httpx.AsyncClient(timeout=30.0)
-    return _shared_http_client
+    
+    # Fast path: if client already exists, return it
+    if _shared_http_client is not None:
+        return _shared_http_client
+    
+    # Slow path: need to create client with lock to ensure thread-safety
+    lock = _get_client_lock()
+    async with lock:
+        # Double-check after acquiring lock (another coroutine might have created it)
+        if _shared_http_client is None:
+            _shared_http_client = httpx.AsyncClient(timeout=30.0)
+        return _shared_http_client
+
+async def _close_shared_client() -> None:
+    """Close the shared HTTP client (call on shutdown)"""
+    global _shared_http_client
+    if _shared_http_client is not None:
+        await _shared_http_client.aclose()
+        _shared_http_client = None
 
 class NetBoxClient:
     """Async NetBox API client"""
@@ -42,7 +67,7 @@ class NetBoxClient:
             params = {}
         
         # Use shared client to avoid concurrent client creation issues
-        client = _get_shared_client()
+        client = await _get_shared_client()
         try:
             response = await client.get(url, headers=self.headers, params=params)
             response.raise_for_status()
