@@ -9,11 +9,37 @@ This document describes the expected structure, conventions, and contributor gui
 
 This repository requires hand-written, descriptive docstrings for each tool (no programmatic/dynamic registrar for final production code). Tools must be grouped and ordered by NetBox API root.
 
+Project structure
+----------------
+```
+.
+├── app.py                          # Main MCP server with all tool definitions
+├── .github/
+│   └── copilot-instructions.md     # This file - Copilot coding guidelines
+├── .gitignore                      # Git ignore patterns
+└── README.md                       # User-facing documentation
+```
+
 Repository conventions
 ---------------------
 - Main MCP tool file: `app.py`.
 - NetBox HTTP helper: `NetBoxClient` defined in `app.py` (wraps `httpx.AsyncClient` and performs `get(endpoint, params)`).
 - MCP registration: functions are decorated with `@mcp.tool` and are async functions with signature `async def func(args: Dict[str, Any]) -> List[Dict[str, Any]]`.
+
+Dependencies and setup
+---------------------
+This project requires Python 3.7+ and the following dependencies:
+- `fastmcp` — FastMCP framework for building MCP servers
+- `httpx` — Async HTTP client for making requests to the NetBox API
+
+To set up the development environment:
+1. Ensure Python 3.7+ is installed
+2. Install dependencies: `pip install fastmcp httpx`
+3. Set environment variables (see README.md):
+   - `NETBOX_URL` — Base URL to your NetBox instance
+   - `NETBOX_TOKEN` — NetBox API token with read permissions
+   - `MCP_PORT` — Port for the FastMCP HTTP transport (default: 8000)
+4. Run the server: `python3 app.py`
 
 API grouping and ordering
 -------------------------
