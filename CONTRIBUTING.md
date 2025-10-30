@@ -37,7 +37,7 @@ This repository follows specific conventions for adding NetBox MCP tools. **Plea
 - Each NetBox resource must have two tools: `search_<resource>` and `get_<resource>_details`
 - Tools must be organized by NetBox API root (circuits, dcim, ipam, etc.)
 - All tools require descriptive docstrings with clear parameter documentation
-- Use the helper functions `_search()` and `_get_detail()` to reduce code duplication
+- Use the helper functions `_search()` and `_get_detail()` (defined in `app.py`) to reduce code duplication
 - Return structured JSON objects (no human-readable messages in responses)
 
 ### Adding a New Resource
@@ -49,7 +49,7 @@ This repository follows specific conventions for adding NetBox MCP tools. **Plea
 5. Test your changes with a running NetBox instance
 6. Commit with a clear message describing what was added
 
-For detailed step-by-step instructions, see the [How to add a new resource](.github/copilot-instructions.md#how-to-add-a-new-resource-step-by-step) section in the Copilot instructions.
+For detailed step-by-step instructions, see the "How to add a new resource (step-by-step)" section in [`.github/copilot-instructions.md`](.github/copilot-instructions.md).
 
 ## Code Style
 
