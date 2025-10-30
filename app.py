@@ -73,10 +73,6 @@ class NetBoxClient:
         """Make GET request to NetBox API"""
         url = urljoin(f"{self.base_url}/api/", endpoint.lstrip('/'))
         
-        # Ensure params is a dict (not None) to avoid potential httpx issues
-        if params is None:
-            params = {}
-        
         # Use shared client to avoid concurrent client creation issues
         client = await _get_shared_client()
         try:
