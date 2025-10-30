@@ -10,6 +10,17 @@ import httpx
 NETBOX_URL = os.getenv("NETBOX_URL", "https://netbox.example.com")
 NETBOX_TOKEN = os.getenv("NETBOX_TOKEN", "")
 
+# Shared HTTP client to avoid creating multiple clients concurrently
+# This prevents "unhandled errors in a TaskGroup" when multiple tools run simultaneously
+_shared_http_client: Optional[httpx.AsyncClient] = None
+
+def _get_shared_client() -> httpx.AsyncClient:
+    """Get or create the shared HTTP client"""
+    global _shared_http_client
+    if _shared_http_client is None:
+        _shared_http_client = httpx.AsyncClient(timeout=30.0)
+    return _shared_http_client
+
 class NetBoxClient:
     """Async NetBox API client"""
     
@@ -26,14 +37,25 @@ class NetBoxClient:
         """Make GET request to NetBox API"""
         url = urljoin(f"{self.base_url}/api/", endpoint.lstrip('/'))
         
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            try:
-                response = await client.get(url, headers=self.headers, params=params)
-                response.raise_for_status()
-                return response.json()
-            except Exception as e:
-                # Handle all errors (connection, timeout, etc.)
-                raise Exception(f"NetBox API error: {e}") from e
+        # Ensure params is a dict (not None) to avoid potential httpx issues
+        if params is None:
+            params = {}
+        
+        # Use shared client to avoid concurrent client creation issues
+        client = _get_shared_client()
+        try:
+            response = await client.get(url, headers=self.headers, params=params)
+            response.raise_for_status()
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            # Re-raise HTTP errors with more context
+            raise Exception(f"NetBox API HTTP {e.response.status_code}: {e}") from e
+        except httpx.RequestError as e:
+            # Handle connection, timeout, and request errors
+            raise Exception(f"NetBox API request error: {e}") from e
+        except Exception as e:
+            # Handle all other errors (JSON decode, etc.)
+            raise Exception(f"NetBox API error: {e}") from e
             
 
 # Small reusable helpers to reduce repetition across tools
