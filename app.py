@@ -14,33 +14,49 @@ NETBOX_TOKEN = os.getenv("NETBOX_TOKEN", "")
 # Shared HTTP client to avoid creating multiple clients concurrently
 # This prevents "unhandled errors in a TaskGroup" when multiple tools run simultaneously
 _shared_http_client: Optional[httpx.AsyncClient] = None
-_client_lock: Optional[asyncio.Lock] = None
+_init_lock = None
 
-def _get_client_lock() -> asyncio.Lock:
-    """Get or create the lock for thread-safe client initialization"""
-    global _client_lock
-    if _client_lock is None:
-        _client_lock = asyncio.Lock()
-    return _client_lock
+def _ensure_lock():
+    """Ensure the initialization lock exists"""
+    global _init_lock
+    if _init_lock is None:
+        try:
+            _init_lock = asyncio.Lock()
+        except RuntimeError:
+            # No event loop yet, will be created on first async call
+            pass
+    return _init_lock
 
 async def _get_shared_client() -> httpx.AsyncClient:
-    """Get or create the shared HTTP client (thread-safe)"""
-    global _shared_http_client
+    """Get or create the shared HTTP client (thread-safe).
+    
+    Uses asyncio.Lock for proper synchronization during concurrent initialization.
+    """
+    global _shared_http_client, _init_lock
     
     # Fast path: if client already exists, return it
     if _shared_http_client is not None:
         return _shared_http_client
     
-    # Slow path: need to create client with lock to ensure thread-safety
-    lock = _get_client_lock()
-    async with lock:
+    # Ensure we have a lock (create it if needed)
+    if _init_lock is None:
+        _init_lock = asyncio.Lock()
+    
+    # Slow path: create client with lock to ensure only one instance
+    async with _init_lock:
         # Double-check after acquiring lock (another coroutine might have created it)
         if _shared_http_client is None:
             _shared_http_client = httpx.AsyncClient(timeout=30.0)
         return _shared_http_client
 
 async def _close_shared_client() -> None:
-    """Close the shared HTTP client (call on shutdown)"""
+    """Close the shared HTTP client on application shutdown.
+    
+    Note: FastMCP doesn't provide shutdown hooks by default. If running this
+    as a standalone service, you may want to register this function with your
+    application framework's shutdown handler (e.g., atexit, signal handlers).
+    For now, the client will be cleaned up when the Python process exits.
+    """
     global _shared_http_client
     if _shared_http_client is not None:
         await _shared_http_client.aclose()
