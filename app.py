@@ -20,6 +20,8 @@ async def _get_shared_client() -> httpx.AsyncClient:
     """Get or create the shared HTTP client (thread-safe).
     
     Uses asyncio.Lock for proper synchronization during concurrent initialization.
+    This function must be called from an async context (which is guaranteed since
+    it's an async function called by async tool functions).
     """
     global _shared_http_client, _init_lock
     
@@ -27,9 +29,13 @@ async def _get_shared_client() -> httpx.AsyncClient:
     if _shared_http_client is not None:
         return _shared_http_client
     
-    # Ensure we have a lock (create it if needed)
+    # Ensure we have a lock (create it if needed in async context)
     if _init_lock is None:
-        _init_lock = asyncio.Lock()
+        try:
+            _init_lock = asyncio.Lock()
+        except RuntimeError as e:
+            # This should never happen since we're in an async context
+            raise RuntimeError("No event loop available. This function must be called from an async context.") from e
     
     # Slow path: create client with lock to ensure only one instance
     async with _init_lock:
