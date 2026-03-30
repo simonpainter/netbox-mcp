@@ -75,3 +75,8 @@ If you add tools, follow the repo conventions documented in `.github/copilot-ins
 ## License
 
 This project is provided as-is.
+
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/simonpainter-netbox-mcp).
+
